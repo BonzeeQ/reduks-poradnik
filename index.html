@@ -1422,7 +1422,10 @@ document.addEventListener('change', e => {
   if (e.target.id === 'op-zgoda') op.zgoda = e.target.checked;
 });
 
-function render() { renderInner(); postWys(true); }
+var EKRAN_OST = null;
+// C1 (23c): znacznik gora (przewinięcie rodzica do góry ramki) tylko przy ZMIANIE EKRANU — region, kod, obszar, krok, wysłane;
+// wybór odpowiedzi w tym samym pytaniu zmienia tylko st.ans → sama wysokość, bez przewijania strony sklepu.
+function render() { renderInner(); const k = [loc.region ? 1 : 0, loc.kodDone ? 1 : 0, st.area || '', st.step, st.sent ? 1 : 0].join('|'); const nowy = k !== EKRAN_OST; EKRAN_OST = k; postWys(nowy); }
 function renderInner() { renderWidok(); renderOpinia(); }
 function renderWidok() {
   const a = st.area ? AREAS[st.area] : null;
