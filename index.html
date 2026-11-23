@@ -1422,7 +1422,7 @@ document.addEventListener('change', e => {
   if (e.target.id === 'op-zgoda') op.zgoda = e.target.checked;
 });
 
-function render() { renderInner(); try { parent.postMessage({ reduksPoradnikH: document.documentElement.scrollHeight, gora: true }, '*'); } catch (er) {} }
+function render() { renderInner(); postWys(true); }
 function renderInner() { renderWidok(); renderOpinia(); }
 function renderWidok() {
   const a = st.area ? AREAS[st.area] : null;
@@ -1575,8 +1575,28 @@ document.addEventListener('submit', e => {
     .catch(nieudane);
 });
 
-const post = () => { try { parent.postMessage({ reduksPoradnikH: document.documentElement.scrollHeight }, '*'); } catch (er) {} };
-try { new ResizeObserver(post).observe(document.body); } catch (er) {}
+// Ramka (GitHub Pages w ShopGold/GTM, 23.11): wysyłamy wysokość TREŚCI — dół ostatniego elementu body (bez skryptów)
+// plus margines dolny równy górnemu. NIE scrollHeight: ten nigdy nie spada poniżej wysokości ramki, więc ramka tylko by rosła.
+// Wiadomość niesie wyłącznie liczbę (i znacznik gora przy zmianie ekranu). Poza ramką nic nie wysyłamy.
+function wysTresci() {
+  const el = Array.prototype.filter.call(document.body.children, e => !/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(e.tagName));
+  if (!el.length) return 0;
+  const y = window.scrollY || 0, gora = el[0].getBoundingClientRect().top + y;
+  let dol = 0; el.forEach(e => { const r = e.getBoundingClientRect(); if (r.height > 0) dol = Math.max(dol, r.bottom + y); });
+  return Math.ceil(dol + Math.max(0, gora));
+}
+function postWys(gora) {
+  try {
+    if (window.parent === window) return;
+    const h = wysTresci(); if (!(h > 0)) return;
+    window.parent.postMessage(gora ? { reduksPoradnikH: h, gora: true } : { reduksPoradnikH: h }, '*');
+  } catch (er) {}
+}
+try { new ResizeObserver(() => postWys(false)).observe(document.querySelector('main') || document.body); } catch (er) {}
+window.addEventListener('load', () => postWys(false));
+[300, 1000, 3000].forEach(ms => setTimeout(() => postWys(false), ms));   // rodzic (tag GTM) mógł podpiąć listener później
+// ping od rodzica: {reduksPoradnikPing:1} wyłącznie z okna nadrzędnego → odpowiedź aktualną wysokością
+window.addEventListener('message', (e) => { if (window.parent !== window && e.source === window.parent && e.data && e.data.reduksPoradnikPing) postWys(false); });
 render();
 }
 </script>
