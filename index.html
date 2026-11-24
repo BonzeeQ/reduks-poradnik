@@ -12,82 +12,113 @@
    PICTURE przekrój starego domu; obszar problemu podświetla się, obok rosnąca karta oględzin
    COLOUR ziemia i glina: ciemna umbra pasa, ochra dla wyborów, wapienna biel paneli, akcent błękit nieba dla działań
    TYPE Barlow Semi Condensed (szyld budowy) + Source Sans 3
-   LAYOUT laptop: przekrój po lewej, karta kroków po prawej; telefon: tytuł, przekrój, kroki */
+   LAYOUT (v6.2) jedna wyśrodkowana kolumna max 720 px na każdym ekranie: tytuł, przekrój, karta kroków */
 /* Kolory: wartości jasne w :root, ciemne w @media (prefers-color-scheme: dark) i w [data-theme=dark] — bez funkcji CSS light-dark (starsze iOS Safari i Chrome na Androidzie) */
 :root{color-scheme:light;--umb:#3b2417;--umbt:#f7efe4;--umbt2:#e7d9c6;--umba:#f3c47a;--umbacc:#e0a04a;--bg:#fbfaf7;--ink:#1d1712;--mut:#5e544b;--pan:#ffffff;--line:#e3dbd0;--och:#b8741f;--ochs:#f6e6cc;--ochk:#8a5413;--sky:#1f5fa8;--warn:#9a3412;--onsky:#ffffff;--onoch:#ffffff;--zas:rgba(0,0,0,.02);--bzb:#fdf2f2;--bzl:#9b2c2c;--bzh:#7a1f1f}
 :root[data-theme=light]{color-scheme:light;--bg:#fbfaf7;--ink:#1d1712;--mut:#5e544b;--pan:#ffffff;--line:#e3dbd0;--och:#b8741f;--ochs:#f6e6cc;--ochk:#8a5413;--sky:#1f5fa8;--warn:#9a3412;--onsky:#ffffff;--onoch:#ffffff;--zas:rgba(0,0,0,.02);--bzb:#fdf2f2;--bzl:#9b2c2c;--bzh:#7a1f1f}
 @media (prefers-color-scheme: dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#17110d;--ink:#f2ece4;--mut:#b9ad9f;--pan:#221a14;--line:#3a2e25;--och:#e0a04a;--ochs:#3e2c17;--ochk:#e0a04a;--sky:#7fb2ee;--warn:#f0a07a;--onsky:#17110d;--onoch:#17110d;--zas:rgba(255,255,255,.03);--bzb:#3a1614;--bzl:#e07a6e;--bzh:#ffb4a8}}
 :root[data-theme=dark]{color-scheme:dark;--bg:#17110d;--ink:#f2ece4;--mut:#b9ad9f;--pan:#221a14;--line:#3a2e25;--och:#e0a04a;--ochs:#3e2c17;--ochk:#e0a04a;--sky:#7fb2ee;--warn:#f0a07a;--onsky:#17110d;--onoch:#17110d;--zas:rgba(255,255,255,.03);--bzb:#3a1614;--bzl:#e07a6e;--bzh:#ffb4a8}
+/* v6.2 UI (plan wydań A Darka 24.11): jedna wyśrodkowana kolumna max 720 px, marginesy boczne 16 px, odstępy 4/8/16/24
+   (--s1…--s4), tekst i kafle o 1–2 px mniejsze, pola formularza (input/select/textarea) zostają 16 px (iOS nie powiększa),
+   kafle równej szerokości: 2 kolumny na telefonie, 3 od 600 px; ostatni niepełny rząd wyśrodkowany (flex-wrap + center). */
+:root{--s1:4px;--s2:8px;--s3:16px;--s4:24px;--kol:720px;--kafle:2}
+@media(min-width:600px){:root{--kafle:3}}
 *{box-sizing:border-box;min-width:0}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:16px/1.55 "Source Sans 3",system-ui,sans-serif;overflow-x:clip}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 "Source Sans 3",system-ui,sans-serif;overflow-x:clip}
 h1,h2,h3{font-family:"Barlow Semi Condensed",system-ui,sans-serif;line-height:1.05;letter-spacing:-.01em;margin:0}
-.top{background:var(--umb);color:var(--umbt);padding:20px max(5vw,16px) 0}
-.top .row{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;max-width:1240px;margin:0 auto}
-.top h1{font-size:clamp(30px,4.4vw,46px);text-wrap:balance}
-.top p{margin:6px 0 0;color:var(--umbt2);max-width:60ch}
-.tgl{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--umbt);cursor:pointer;min-height:44px}
+.top{background:var(--umb);color:var(--umbt);padding:var(--s4) var(--s3) 0}
+.top .row{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s3);align-items:baseline;justify-content:space-between;max-width:var(--kol);margin:0 auto}
+.top h1{font-size:clamp(28px,4vw,40px);text-wrap:balance}
+.top p{margin:var(--s2) 0 0;color:var(--umbt2);max-width:60ch}
+.tgl{display:flex;align-items:center;gap:var(--s2);font-size:14px;color:var(--umbt);cursor:pointer;min-height:44px}
 .tgl input{width:20px;height:20px;accent-color:var(--umbacc)}
-.wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:24px;max-width:1240px;margin:0 auto;padding:22px max(5vw,16px) 48px;align-items:start}
-.house{position:sticky;top:16px;background:var(--umb);border-radius:14px;overflow:hidden}
-.fig{position:relative;aspect-ratio:1/1}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s3);max-width:calc(var(--kol) + 2 * var(--s3));margin:0 auto;padding:var(--s4) var(--s3) 48px;align-items:start}
+.house{background:var(--umb);border-radius:14px;overflow:hidden}
+.fig{position:relative;aspect-ratio:16/9}
+@media(min-width:600px){.fig{aspect-ratio:5/2}}
 .fig svg{position:absolute;inset:0;width:100%;height:100%}
-.legend{padding:12px 16px 16px;color:var(--umbt);font-size:15px}
+.legend{padding:var(--s2) var(--s3) var(--s3);color:var(--umbt);font-size:14px}
 .legend b{color:var(--umba)}
-.card{background:var(--pan);border:1px solid var(--line);border-radius:14px;padding:clamp(16px,2.4vw,26px)}
-.steps{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px;padding:0;list-style:none}
-.steps li{font-size:14px;padding:4px 10px;border-radius:99px;background:var(--ochs);color:var(--mut)}
+.card{background:var(--pan);border:1px solid var(--line);border-radius:14px;padding:var(--s3)}
+@media(min-width:600px){.card{padding:var(--s4)}}
+.steps{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s2);margin:0 0 var(--s3);padding:0;list-style:none}
+.steps li{font-size:13px;padding:var(--s1) 10px;border-radius:99px;background:var(--ochs);color:var(--mut)}
 .steps li.on{background:var(--ochk);color:var(--onoch)}
-.card h2{font-size:clamp(26px,3vw,34px);margin-bottom:6px}
-.lead{color:var(--mut);margin:0 0 16px}
-.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(14em,1fr));gap:10px}
-.opt{display:block;text-align:left;font:inherit;color:inherit;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;min-height:56px;cursor:pointer}
-.opt b{display:block;font-size:17px}
-.opt span{color:var(--mut);font-size:15px}
+.card h2{font-size:clamp(24px,2.8vw,30px);margin-bottom:var(--s2);scroll-margin-top:var(--s3)}
+.lead{color:var(--mut);margin:0 0 var(--s3)}
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--s2)}
+.opts>*{flex:0 0 100%}
+.opts>.opt{flex:0 0 calc((100% - (var(--kafle) - 1) * var(--s2)) / var(--kafle))}
+.opt{display:block;text-align:left;font:inherit;color:inherit;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:12px var(--s3) 12px 12px;min-height:64px;cursor:pointer;overflow-wrap:anywhere;hyphens:manual;-webkit-hyphens:manual}
+.opt b{display:block;font-size:15px;line-height:1.35}
+.opt span{display:block;color:var(--mut);font-size:13.5px;line-height:1.4;margin-top:2px}
 .opt:hover{border-color:var(--och)}
-.opt:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.opt:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
 #view h2:focus{outline:none}
-.dalej-przy{margin:2px 0 6px}
+.dalej-przy{margin:2px 0 var(--s2)}
 .opt[aria-pressed=true]{border-color:var(--och);background:var(--ochs)}
-.nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
-.btn{font:600 16px "Source Sans 3",sans-serif;min-height:44px;padding:10px 18px;border-radius:10px;border:1.5px solid var(--line);background:var(--pan);color:var(--ink);cursor:pointer}
+.nav{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s3)}
+.btn{font:600 15px "Source Sans 3",sans-serif;min-height:44px;padding:10px var(--s3);border-radius:10px;border:1.5px solid var(--line);background:var(--pan);color:var(--ink);cursor:pointer}
 .btn.go{background:var(--sky);border-color:var(--sky);color:var(--onsky)}
 .btn:disabled{opacity:.45;cursor:default}
 a.btn{display:inline-block;text-decoration:none;line-height:24px}
-.res{display:grid;gap:12px}
-.box{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg)}
-.box h3{font-size:21px;margin-bottom:4px}
-.box p{margin:4px 0}
-.box ul{margin:6px 0 0;padding-left:20px}
+.res{display:grid;gap:var(--s2)}
+.box{border:1px solid var(--line);border-radius:12px;padding:12px var(--s3);background:var(--bg)}
+.box h3{font-size:19px;margin-bottom:var(--s1)}
+.box p{margin:var(--s1) 0}
+.box ul{margin:var(--s2) 0 0;padding-left:20px}
 .box.main{border:2px solid var(--och);background:var(--ochs)}
 .box.bezp{border:2px solid var(--bzl);background:var(--bzb);color:var(--ink)}
 .box.bezp h3{color:var(--bzh)}
-.box.svc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 14px;align-items:center}
-.tag{font-size:14px;color:var(--warn);white-space:nowrap}
-._x{display:none;margin-top:8px;padding:8px 10px;border-left:3px solid var(--sky);background:color-mix(in srgb,var(--sky) 8%,transparent);font-size:14px;color:var(--mut)}
+.box.svc{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s2) var(--s3);align-items:center}
+.tag{font-size:13px;color:var(--warn);white-space:nowrap}
+._x{display:none;margin-top:var(--s2);padding:var(--s2) 10px;border-left:3px solid var(--sky);background:color-mix(in srgb,var(--sky) 8%,transparent);font-size:13px;color:var(--mut)}
 
 form{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(14em,1fr))}
-label.f{display:grid;gap:4px;font-size:15px;font-weight:600}
-input[type=text],input[type=email],input[type=tel],textarea{font:16px "Source Sans 3",sans-serif;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
+label.f{display:grid;gap:var(--s1);font-size:14px;font-weight:600}
+input[type=text],input[type=email],input[type=tel],input[type=number],select,textarea{font:16px "Source Sans 3",sans-serif;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%}
 textarea{min-height:90px}
 .full{grid-column:1/-1}
-.chk{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px}
 .chk input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--och)}
-.err{color:var(--warn);font-size:15px;margin:0}
+.err{color:var(--warn);font-size:14px;margin:0}
 pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
-.note{font-size:14px;color:var(--mut);margin:14px 0 0}
-.zastrz{font-size:11.5px;line-height:1.55;text-align:justify;hyphens:auto;-webkit-hyphens:auto;margin:18px 0 0;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--zas)}
+.note{font-size:13px;color:var(--mut);margin:var(--s3) 0 0}
+.zastrz{font-size:11.5px;line-height:1.55;text-align:justify;hyphens:auto;-webkit-hyphens:auto;margin:var(--s3) 0 0;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--zas)}
 .zastrz b{color:var(--ink,inherit);letter-spacing:.02em}
-.op{margin-top:18px;padding-top:10px;border-top:1px dashed var(--line)}
-.op .lnk{background:none;border:0;padding:0;min-height:44px;font:inherit;font-size:15px;color:var(--sky);text-decoration:underline;cursor:pointer}
+.op{margin-top:var(--s3);padding-top:10px;border-top:1px dashed var(--line)}
+.op .lnk{background:none;border:0;padding:0;min-height:44px;font:inherit;font-size:14px;color:var(--sky);text-decoration:underline;cursor:pointer}
 .op .lnk:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
-.kciuki{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 6px}
+.kciuki{display:flex;flex-wrap:wrap;gap:var(--s2);align-items:center;margin:0 0 var(--s2)}
 .kciuki .btn{font-size:20px;padding:6px 14px}
-.op-form{margin-top:6px}
-.op-form fieldset{border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0;display:flex;flex-wrap:wrap;gap:6px 16px}
-.op-form legend{font-weight:600;font-size:15px;padding:0 4px}
+.op-form{margin-top:var(--s2)}
+.op-form fieldset{border:1px solid var(--line);border-radius:10px;padding:var(--s2) 12px;margin:0;display:flex;flex-wrap:wrap;gap:var(--s2) var(--s3)}
+.op-form legend{font-weight:600;font-size:14px;padding:0 var(--s1)}
 .op-form .chk{min-height:32px;align-items:center}
-@media(max-width:820px){.wrap{grid-template-columns:minmax(0,1fr)}.house{position:static}.fig{aspect-ratio:16/10}}
+/* menu grup: kafle grup jak kafle odpowiedzi (2 kolumny na telefonie, 4 grupy w jednym rzędzie od 600 px nie mieszczą opisu — 2×2);
+   przy otwartej grupie jedna kolumna (kafle w stałej kolejności); cele dotyku ≥ 44 px; hover tylko przy myszy */
+.grupy{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
+.gr{border:1.5px solid var(--line);border-radius:12px;background:var(--bg)}
+.grupy.otwarta{grid-template-columns:minmax(0,1fr)}
+.gr[open]{border-color:var(--och)}
+.gr summary{display:flex;flex-direction:column;gap:var(--s2);align-items:flex-start;padding:12px;min-height:56px;cursor:pointer;list-style:none;border-radius:11px}
+.gr:not([open]) summary{height:100%}
+@media(min-width:600px){.gr summary{flex-direction:row;gap:12px}}
+.grupy.otwarta .gr summary{flex-direction:row;gap:12px}
+.gr summary::-webkit-details-marker{display:none}
+@media(hover:hover){.gr summary:hover{background:var(--ochs)}.chip:hover{background:var(--ochs)}}
+.gr[open] summary{background:var(--ochs)}
+.gr summary:focus-visible,.chip:focus-visible,.lnk:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.gr summary b{display:block;font-size:16px;line-height:1.3}
+.gr summary span span{display:block;color:var(--mut);font-size:13.5px;line-height:1.4;margin-top:2px}
+.ik{flex:none;width:28px;height:28px;margin-top:2px;fill:none;stroke:var(--ochk);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.gr-in{padding:var(--s1) 12px var(--s3)}
+.chipy{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--s2);margin:2px 0 var(--s1)}
+.chip{font:600 14px "Source Sans 3",sans-serif;min-height:44px;padding:var(--s2) 14px;border-radius:99px;border:1.5px solid var(--och);background:var(--pan);color:var(--ink);cursor:pointer;text-align:left}
+.gr-w{margin:var(--s3) 0 var(--s2);font-weight:600}
+.menu-linki{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s4);margin-top:12px}
+.lnk{background:none;border:0;padding:0;min-height:44px;font:inherit;font-size:15px;color:var(--sky);text-decoration:underline;cursor:pointer;text-align:left}
 @media(prefers-reduced-motion:no-preference){.hl{transition:opacity .35s,fill .35s}}
 </style>
 </head>
@@ -123,6 +154,8 @@ pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-rad
         <rect id="a-tynk" class="hl" x="106" y="178" width="8" height="174" fill="#e0a04a" opacity="0"/>
         <rect id="a-ocieplenie" class="hl" x="106" y="178" width="14" height="174" fill="#e0a04a" opacity="0"/>
         <rect id="a-wilgoc" class="hl" x="84" y="300" width="232" height="52" fill="#4f8fd6" opacity="0"/>
+        <rect id="a-pietro" class="hl" x="84" y="178" width="232" height="84" fill="#e0a04a" opacity="0"/>
+        <rect id="a-parter" class="hl" x="84" y="268" width="232" height="84" fill="#e0a04a" opacity="0"/>
         <rect x="170" y="210" width="60" height="70" fill="#9cc0e6"/><path d="M200 210V280M170 245H230" stroke="#6e4630" stroke-width="4"/>
         <rect x="140" y="300" width="36" height="52" fill="#6e4630"/>
         <rect x="106" y="262" width="188" height="6" fill="#c9b79f"/>
@@ -144,7 +177,7 @@ pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-rad
 <script>
 {
 // Wersja Przewodnika — zapisywana w każdym rekordzie zgłoszenia (WWD pkt 21: wynik wie, wg jakiej wersji reguł powstał).
-const PRZEWODNIK_WERSJA = 'v6.1-2026-11-23';
+const PRZEWODNIK_WERSJA = 'v6.2-2026-11-24';
 // Link do karty „do rozmowy z urzędem” (MC_USTAWIENIA → KARTA_URZAD_URL; wstawia build_public.py). Puste = link ukryty.
 const KARTA_URZAD_URL = "https://bonzeeq.github.io/reduks-poradnik/karta-koncepcji.pdf";
 // Rozwiązania do remontu: adres strony z kartami wariantów, obok Przewodnika (4. argument build_public.py). Puste = linki ukryte.
@@ -207,6 +240,86 @@ const ZAB_KOD = {
 };
 const ZAB_O = Object.keys(ZAB_KOD).filter(o => ZAB_KOD[o] !== 'c');
 const Q_ZAB = { id: 'zabytek', t: 'Czy budynek jest objęty ochroną zabytków?', o: ZAB_O };
+// v6.2 (kolejka 26, FAZA 2a — „Jaki to dom”): JEDNO wspólne pytanie o konstrukcję domu (id dom) we wszystkich obszarach, które
+// pytały o konstrukcję: dawne wilgoc.mur, ocieplenie „Ściana od zewnątrz”.podloze, ocieplenie „Izolacja pozioma”.bud,
+// ogloszenie.konstr, kupno.konstr, podloga.bud, ogrzewanie.bud, strop.bud, dach.bud, gosp.mur; w ocieplenie „Ściana od wewnątrz”
+// przed pytaniem o podłoże (lista podłoży zawężona do typu domu — te same wartości, K23.1 bez zmian). Typologia: uzupełnienie
+// Darka 23.11. Mieszany → dom_dol / dom_gora (grafika: parter / piętro). Nie wiem →
+// dom_rozp: typy z krainy i kodu pocztowego na górze listy + 3 wskazówki + prośba o zdjęcie w zgłoszeniu. Odpowiedź raz na sprawę:
+// domPam (sesja strony) — w kolejnym obszarze pytanie jest już zaznaczone. Zgłoszenia i opinie ze starymi kluczami: mapa
+// stara → nowa na serwerze (PZ_DOM_STARE w PRZEWODNIK_ZGLOSZENIA.js = OP.DOM_STARE w OPINIE.js).
+const DOM = {
+  zrab: 'Belki ułożone poziomo (zrąb, bal)',
+  krata: 'Drewniana krata z wypełnieniem (szachulec, mur pruski)',
+  przyslup: 'Dom przysłupowy (drewniane słupy wokół izby z bali)',
+  cegla: 'Cegła',
+  kamien: 'Kamień',
+  glina: 'Glina (bloki gliniane albo glina ubijana)',
+  mieszany: 'Mieszany — dół inny niż góra',
+  nowszy: 'Nowszy: pustak lub beton',
+  niewiem: 'Nie wiem'
+};
+const DOM_NADAL = 'Nadal nie wiem — wyślę zdjęcie';
+const DOM_KLUCZ = Object.fromEntries(Object.entries(DOM).map(([k, v]) => [v, k]));
+const DOM_O = Object.values(DOM);
+const DOM_CZESC_O = ['zrab', 'krata', 'cegla', 'kamien', 'glina', 'nowszy', 'niewiem'].map(k => DOM[k]);
+const DOM_ROZP_O = ['zrab', 'krata', 'przyslup', 'cegla', 'kamien', 'glina', 'nowszy'].map(k => DOM[k]).concat([DOM_NADAL]);
+const Q_DOM = { id: 'dom', t: 'Jaki to dom?', o: DOM_O };
+const Q_DOM_DOL = { id: 'dom_dol', t: 'Z czego jest dół domu (parter)?', o: DOM_CZESC_O, hl: 'a-parter', hlOpis: 'parter' };
+const Q_DOM_GORA = { id: 'dom_gora', t: 'Z czego jest góra domu (piętro lub poddasze)?', o: DOM_CZESC_O, hl: 'a-pietro', hlOpis: 'piętro' };
+const Q_DOM_ROZP = { id: 'dom_rozp', t: 'Spróbujmy rozpoznać dom', o: DOM_ROZP_O, region: true };
+const DOM_IDS = ['dom', 'dom_dol', 'dom_gora', 'dom_rozp'];
+// Pytania pochodne — w qsOf tuż po „Jaki to dom” (rozgałęzienie wyłącznie po odpowiedzi z listy: dom).
+const domDalsze = v => v === DOM.mieszany ? [Q_DOM_DOL, Q_DOM_GORA] : v === DOM.niewiem ? [Q_DOM_ROZP] : [];
+const domRozwin = (q, x) => { const i = q.findIndex(p => p.id === 'dom'); return i < 0 ? q : q.slice(0, i + 1).concat(domDalsze((x || {}).dom), q.slice(i + 1)); };
+// Typy konstrukcji (klucze DOM): mieszany → dół i góra; nie wiem → rozpoznany z podpowiedzi albo brak.
+function domTypy(x) {
+  x = x || {}; const k = DOM_KLUCZ[x.dom];
+  if (k === 'mieszany') return [DOM_KLUCZ[x.dom_dol], DOM_KLUCZ[x.dom_gora]].filter(t => t && t !== 'niewiem');
+  if (k === 'niewiem') { const r = DOM_KLUCZ[x.dom_rozp]; return r ? [r] : []; }
+  return k ? [k] : [];
+}
+const domMa = (x, ...t) => domTypy(x).some(k => t.includes(k));
+const domTylko = (x, ...t) => { const d = domTypy(x); return d.length > 0 && d.every(k => t.includes(k)); };
+const DOM_DREWNO = ['zrab', 'krata', 'przyslup'];
+const domDrewno = x => domMa(x, ...DOM_DREWNO);
+// Dół domu (izolacja pozioma, podwalina): przy domu mieszanym — parter, inaczej typ domu.
+const domDol = x => DOM_KLUCZ[(x || {}).dom] === 'mieszany' ? [DOM_KLUCZ[x.dom_dol]].filter(t => t && t !== 'niewiem') : domTypy(x);
+// Szachulec (drewniana krata) w którejkolwiek części domu — K21.1/K22.2 (wariant H), K22.3, zasada „nie ociepla się od zewnątrz”.
+const domSzach = x => domMa(x, 'krata');
+// Izolacja pozioma: dół domu (podwalina) drewniany — wszystkie znane typy dołu drewniane (dawne „Drewniany na podwalinie”).
+const domIzolDrewno = x => { const d = domDol(x); return d.length > 0 && d.every(k => DOM_DREWNO.includes(k)); };
+function domOpis(x) {
+  if (!x.dom) return '—';
+  if (x.dom === DOM.mieszany) return 'dom mieszany — dół: ' + (x.dom_dol || '—') + ', góra: ' + (x.dom_gora || '—');
+  if (x.dom === DOM.niewiem && x.dom_rozp && x.dom_rozp !== DOM_NADAL) return 'dom: najbliżej „' + x.dom_rozp + '”';
+  return 'dom: ' + x.dom;
+}
+// Ocieplenie od wewnątrz: podłoże zawężone do typu domu (konstrukcja + warstwy na ścianie). Wartości = dotychczasowe (K23.1:
+// klejenie / przykręcanie / bez przycisku zależą wyłącznie od podłoża — wiersze bez zmian). Typ nieznany albo dom mieszany
+// z nieznaną częścią → pełna lista.
+const POD_WEW_O = ['Cegła', 'Poroton', 'Silikat', 'Tynk gliniany', 'Tynk wapienny', 'Gładź gipsowa', 'Płyta drewnopochodna', 'Deskowanie', 'Bal drewniany', 'Konstrukcja szkieletowa', 'Kamień', 'Mur z gliny', 'Szachulec', 'Nie wiem'];
+const POD_WEW_WARSTWY = ['Tynk gliniany', 'Tynk wapienny', 'Gładź gipsowa', 'Płyta drewnopochodna', 'Deskowanie', 'Nie wiem'];
+const POD_WEW_DOM = { zrab: ['Bal drewniany'], krata: ['Szachulec', 'Konstrukcja szkieletowa'], przyslup: ['Bal drewniany', 'Szachulec'], cegla: ['Cegła'], kamien: ['Kamień'], glina: ['Mur z gliny'], nowszy: ['Poroton', 'Silikat'] };
+function podlozeWew(dom, dol, gora, rozp) {
+  const x = { dom: dom, dom_dol: dol, dom_gora: gora, dom_rozp: rozp }, t = domTypy(x);
+  const niepelny = dom === DOM.mieszany && [dol, gora].some(v => !v || v === DOM.niewiem);
+  if (!t.length || niepelny) return POD_WEW_O;
+  const z = []; t.forEach(k => (POD_WEW_DOM[k] || []).forEach(p => z.push(p)));
+  return POD_WEW_O.filter(p => z.includes(p) || POD_WEW_WARSTWY.includes(p));
+}
+// Podpowiedź z regionu (dom_rozp): typy z krainy i z powiatu kodu pocztowego — na górze listy.
+const REGION_DOM = {
+  'Łużyce Górne': ['przyslup', 'krata', 'zrab'], 'Łużyce Dolne': ['krata', 'zrab'], 'Dolny Śląsk': ['przyslup', 'krata', 'kamien', 'cegla'],
+  'Ziemia Kłodzka': ['zrab', 'krata'], 'Sudety i Karkonosze': ['zrab', 'krata', 'przyslup'], 'Górny Śląsk i Opolszczyzna': ['zrab', 'krata'],
+  'Pomorze': ['krata'], 'Pomorze Gdańskie': ['zrab'], 'Kaszuby': ['zrab', 'krata'], 'Żuławy': ['krata', 'cegla'], 'Warmia': ['krata', 'zrab'],
+  'Mazury': ['zrab', 'glina'], 'Kujawy': ['zrab'], 'Wielkopolska': ['zrab'], 'Ziemia Lubuska': ['krata'], 'Mazowsze': ['zrab', 'glina'],
+  'Podlasie i Suwalszczyzna': ['zrab', 'glina'], 'Małopolska': ['zrab'], 'Podhale': ['zrab'], 'Podkarpacie': ['zrab'], 'Lubelszczyzna': ['zrab'],
+  'Kielecczyzna': ['kamien', 'zrab'], 'Ziemia łódzka': ['zrab'], 'Inny region lub nie wiem': []
+};
+// Powiaty (TERYT), dla których typ jest znany wprost (pewność wysoka/średnia; źródła w notatce .int ekranu podpowiedzi).
+const POW_DOM = { '0201': ['przyslup', 'krata'], '0210': ['przyslup', 'krata'], '0212': ['przyslup', 'krata'], '0221': ['przyslup', 'krata'], '0225': ['przyslup', 'krata'],
+  '2805': ['zrab', 'glina'] };
 const AREAS = {
   wilgoc: { name: 'Zawilgocone ściany', short: 'wilgoć, grzyb, odpadający tynk', hl: 'a-wilgoc',
     legend: '<b>Wilgoć</b> zwykle widać najpierw przy cokole i w dolnej części murów.',
@@ -214,7 +327,7 @@ const AREAS = {
       { id: 'gdzie', t: 'Gdzie widać wilgoć?', o: ['Przy podłodze, na dole ścian', 'Na całej wysokości ściany', 'Przy oknach i w narożnikach', 'Na podłodze', 'Na stropie lub suficie', 'Pod dachem, na poddaszu'], chk: { id: 'zapach', label: 'Czuć zapach stęchlizny' } },
       { id: 'pom', t: 'W jakim pomieszczeniu?', o: ['Pokój: salon, sypialnia', 'Kuchnia', 'Łazienka', 'Piwnica', 'Poddasze', 'Sień lub klatka schodowa', 'W kilku pomieszczeniach'] },
       { id: 'otocz', t: 'Co jest przy murze od zewnątrz?', o: ['Trawa lub żwir', 'Beton, kostka lub asfalt tuż przy ścianie', 'Lepik, papa lub tynk cementowy na cokole', 'Folia kubełkowa', 'Nie wiem'] },
-      { id: 'mur', t: 'Z czego są ściany?', o: ['Cegła', 'Kamień', 'Kamień i cegła', 'Glina (glinobitka, cegła suszona)', 'Bal drewniany', 'Szachulec (mur pruski)', 'Konstrukcja szkieletowa', 'Nie wiem'] },
+      Q_DOM,
       { id: 'powloka', t: 'Co jest dziś na ścianie?', o: ['Tynk wapienny', 'Tynk gliniany', 'Gładź gipsowa', 'Tynk cementowy', 'Farba lateksowa lub akrylowa', 'Deskowanie', 'Ściana z bala', 'Kamień bez tynku', 'Nie wiem'] }
     ] },
   ocieplenie: { name: 'Ocieplenie', short: 'ściany od środka i z zewnątrz, dach, strop, podłoga, izolacja pozioma', hl: 'a-ocieplenie',
@@ -225,13 +338,13 @@ const AREAS = {
       const grub = { id: 'grubosc', t: 'Czy masz projekt z grubością ocieplenia?', o: ['Tak, mam projekt', 'Nie, potrzebuję pomocy'] };
       const zab = { id: 'zabytek', t: 'Czy budynek jest objęty ochroną zabytków?', o: ZAB_O };
       return [m].concat({
-        'Ściana od wewnątrz': [{ id: 'pom', t: 'W jakim pomieszczeniu?', o: ['Pokój: salon, sypialnia', 'Kuchnia', 'Łazienka', 'Piwnica', 'Poddasze', 'Sień lub klatka schodowa', 'W kilku pomieszczeniach'], chk: { id: 'emisja', label: 'Zależy mi na materiałach z certyfikatem zdrowego budownictwa i niskiej emisji' } }, { id: 'podloze', t: 'Jakie jest podłoże?', o: ['Cegła', 'Poroton', 'Silikat', 'Tynk gliniany', 'Tynk wapienny', 'Gładź gipsowa', 'Płyta drewnopochodna', 'Deskowanie', 'Bal drewniany', 'Konstrukcja szkieletowa', 'Kamień', 'Mur z gliny', 'Szachulec', 'Nie wiem'] }, metry],
-        'Ściana od zewnątrz': [{ id: 'podloze', t: 'Z czego jest ściana?', o: ['Cegła', 'Kamień', 'Bal drewniany', 'Szachulec (mur pruski)', 'Konstrukcja szkieletowa', 'Mur z gliny', 'Nie wiem'] }, { id: 'juz', t: 'Czy ściana jest już ocieplona?', o: ['Nie', 'Tak, styropianem', 'Tak, wełną mineralną', 'Tak, nieznanym materiałem (płyty lub włókno)', 'Nie wiem'] }, zab, metry],
+        'Ściana od wewnątrz': [{ id: 'pom', t: 'W jakim pomieszczeniu?', o: ['Pokój: salon, sypialnia', 'Kuchnia', 'Łazienka', 'Piwnica', 'Poddasze', 'Sień lub klatka schodowa', 'W kilku pomieszczeniach'], chk: { id: 'emisja', label: 'Zależy mi na materiałach z certyfikatem zdrowego budownictwa i niskiej emisji' } }, Q_DOM, { id: 'podloze', t: 'Jakie jest podłoże?', o: podlozeWew(x.dom, x.dom_dol, x.dom_gora, x.dom_rozp) }, metry],
+        'Ściana od zewnątrz': [Q_DOM, { id: 'juz', t: 'Czy ściana jest już ocieplona?', o: ['Nie', 'Tak, styropianem', 'Tak, wełną mineralną', 'Tak, nieznanym materiałem (płyty lub włókno)', 'Nie wiem'] }, zab, metry],
         'Dach między krokwiami': [{ id: 'pokrycie', t: 'Co z pokryciem dachu?', o: ['Pokrycie zostaje — ocieplamy od środka', 'Pokrycie będzie zdejmowane', 'Nie wiem'] }, metry, grub],
         'Dach na krokwiach': [zab, metry, grub],
         'Strop': [{ id: 'co', t: 'Który strop?', o: ['Nad ostatnią kondygnacją (zimne poddasze)', 'Między piętrami', 'Nad piwnicą lub przejazdem'] }, { id: 'konstr', t: 'Jaki to strop?', o: ['Drewniany belkowy', 'Ceramiczny lub stalowy (np. Kleina)', 'Betonowy', 'Nie wiem'] }, metry, grub],
         'Podłoga': [{ id: 'podl', t: 'Jaka to podłoga?', o: ['Drewniana na legarach', 'Na gruncie', 'Nad piwnicą', 'Nie wiem'] }, { id: 'plan', t: 'Co planujesz?', o: ['Odnowić deski na legarach', 'Nową wylewkę betonową', 'Ogrzewanie podłogowe', 'Płytki w kuchni lub łazience', 'Jeszcze nie wiem'] }, metry],
-        'Izolacja pozioma (odcięcie wilgoci od fundamentu)': [{ id: 'bud', t: 'Jaki to budynek?', o: ['Drewniany na podwalinie', 'Murowany z cegły', 'Murowany z kamienia', 'Nie wiem'] }, { id: 'objaw', t: 'Co widać?', o: ['Wilgoć przy podłodze, na dole ścian', 'Podwalina leży w gruncie lub gnije', 'Nic, planuję remont', 'Nie wiem'] }]
+        'Izolacja pozioma (odcięcie wilgoci od fundamentu)': [Q_DOM, { id: 'objaw', t: 'Co widać?', o: ['Wilgoć przy podłodze, na dole ścian', 'Podwalina leży w gruncie lub gnije', 'Nic, planuję remont', 'Nie wiem'] }]
       }[x.miejsce] || []);
     } },
   tynk: { name: 'Tynki gliniane i wapienne', short: 'nowy tynk, pęknięcia, plamy, zdejmowanie gładzi gipsowej i farby', hl: 'a-tynk',
@@ -275,7 +388,7 @@ const AREAS = {
   ogloszenie: { name: 'Oceniam ogłoszenie domu przed zakupem', short: 'ryzyka dla tego typu domu, pytania do sprzedającego, co obejrzeć na miejscu', hl: 'a-strop',
     legend: '<b>Ogłoszenie</b> pokazuje dom z najlepszej strony — sprawdź, o co zapytać i co obejrzeć, zanim pojedziesz.',
     qs: [
-      { id: 'konstr', t: 'Z czego jest dom?', o: ['Mur: cegła lub kamień', 'Drewno: bale', 'Szachulec (mur pruski)', 'Kilka konstrukcji', 'Nie wiem'] },
+      Q_DOM,
       { id: 'wiek', t: 'Z jakiego okresu jest dom?', o: ['Sprzed 1900 roku', '1900–1945', '1945–1970', 'Nie wiem'], chk: STARE },
       { id: 'ociepl', t: 'Czy ogłoszenie lub zdjęcia pokazują ocieplenie?', o: ['Nie, widać stary tynk, cegłę lub drewno', 'Tak, styropian lub nowa elewacja', 'Nie wiem'] },
       { id: 'dach', t: 'Co wiadomo o dachu?', o: ['Nowy lub po remoncie', 'Stary, ale wygląda na cały', 'Widać ubytki, zacieki lub zapadnięcia', 'Nie wiem'] },
@@ -285,7 +398,7 @@ const AREAS = {
   kupno: { name: 'Kupuję stary dom — co sprawdzić?', short: 'oględziny przed zakupem, stan techniczny', hl: 'a-strop',
     legend: '<b>Przed zakupem</b> dom ogląda się od fundamentu w górę, aż po dach.',
     qs: [
-      { id: 'konstr', t: 'Z czego jest dom?', o: ['Drewniany (zrąb, bal)', 'Szachulec lub dom przysłupowy', 'Murowany z cegły', 'Murowany z kamienia', 'Mieszany', 'Nie wiem'] },
+      Q_DOM,
       { id: 'stan', t: 'Jak wygląda na pierwszy rzut oka?', o: ['Zamieszkany, zadbany', 'Niezamieszkany od kilku lat', 'Ruina lub pustostan od dawna', 'Jeszcze nieobejrzany na żywo'] },
       { id: 'zabytek', t: 'Czy budynek jest objęty ochroną zabytków?', o: ZAB_O },
       { id: 'cel', t: 'Co planujesz?', o: ['Zamieszkać na stałe', 'Dom letni lub weekendowy', 'Działalność: agroturystyka, pracownia', 'Jeszcze nie wiem'] },
@@ -315,7 +428,7 @@ const AREAS = {
   podloga: { name: 'Podłoga: na gruncie i na legarach', short: 'wylewka, deski, wentylacja pod podłogą, płytki, ogrzewanie podłogowe', hl: 'a-strop',
     legend: '<b>Podłoga</b> w starym domu musi oddawać wilgoć z gruntu — inaczej wilgoć idzie w ściany.',
     qs: [
-      { id: 'bud', t: 'Jaki to dom?', o: ['Drewniany', 'Murowany', 'Nie wiem'] },
+      Q_DOM,
       { id: 'rodzaj', t: 'Jaka jest podłoga dziś?', o: ['Deski na legarach', 'Na gruncie: klepisko, cegła lub kamień', 'Na luźnym gruzie, bez wyraźnego fundamentu', 'Wylewka betonowa', 'Nie wiem'], chk: STARE },
       { id: 'objaw', t: 'Co się dzieje?', o: ['Deski uginają się, zapadają lub są zjedzone przez owady', 'Ściany zawilgocone od czasu nowej posadzki', 'Zimno od podłogi', 'Martwię się radonem z gruntu', 'Nic, planuję remont'] },
       { id: 'plan', t: 'Co planujesz?', o: ['Nową wylewkę betonową', 'Posadzkę wapienną, z kamienia lub cegły', 'Odnowić deski na legarach', 'Płytki w kuchni lub łazience', 'Ogrzewanie podłogowe', 'Jeszcze nie wiem'] }
@@ -323,13 +436,13 @@ const AREAS = {
   ogrzewanie: { name: 'Ogrzewanie starego domu', short: 'piec kaflowy, kominek, grzejniki, pompa ciepła, dom zimą w remoncie', hl: 'a-strop',
     legend: '<b>Ogrzewanie</b> w starym domu dobiera się do konstrukcji — drewno nie lubi przegrzewania.',
     qs: [
-      { id: 'bud', t: 'Jaki to dom?', o: ['Drewniany', 'Murowany', 'Nie wiem'] },
+      Q_DOM,
       { id: 'co', t: 'O co chodzi?', o: ['Piec kaflowy', 'Kominek lub piecyk', 'Grzejniki', 'Ogrzewanie podłogowe lub ścienne', 'Pompa ciepła', 'Dom nieogrzewany w czasie remontu'] }
     ] },
   strop: { name: 'Strop drewniany: polepa, zasypy, ugięcia', short: 'polepa, zasyp między belkami, wygłuszenie, papier pod zasyp, adaptacja strychu', hl: 'a-strop',
     legend: '<b>Strop drewniany</b> — między belkami często leży polepa z gliny. Dociąża strop i tłumi dźwięki.',
     qs: [
-      { id: 'bud', t: 'Jaki to dom?', o: ['Drewniany', 'Murowany', 'Nie wiem'] },
+      Q_DOM,
       { id: 'warstwa', t: 'Co jest dziś między belkami?', o: ['Polepa gliniana lub glina ze słomą', 'Gruz, żużel lub piasek', 'Pusto, bez wypełnienia', 'Nie wiem'], chk: STARE },
       { id: 'plan', t: 'Co planujesz?', o: ['Zostawić polepę i odnowić podłogę', 'Usunąć polepę i dać lżejszy zasyp', 'Wygłuszyć strop między piętrami', 'Ocieplić strop pod zimnym poddaszem', 'Zaadaptować strych na pokoje', 'Jeszcze nie wiem'] },
       { id: 'objaw', t: 'Co widać?', o: ['Strop się ugina lub drga', 'Zasyp sypie się przez szpary w suficie', 'Pod deskami leży folia', 'Ślady owadów lub zawilgocenia na belkach', 'Nic szczególnego'] }
@@ -337,7 +450,7 @@ const AREAS = {
   dach: { name: 'Dach: pokrycie, deskowanie, wentylacja', short: 'przecieki, impregnacja, ocieplenie poddasza, styk ze ścianą szczytową, od czego zacząć remont', hl: 'a-strop',
     legend: '<b>Dach</b> razem ze stykiem domu z gruntem najbardziej cierpi od wody — od niego zaczyna się remont.',
     qs: [
-      { id: 'bud', t: 'Jaki to dom?', o: ['Drewniany', 'Murowany', 'Nie wiem'] },
+      Q_DOM,
       { id: 'pokrycie', t: 'Jakie jest pokrycie?', o: ['Dachówka ceramiczna (np. karpiówka)', 'Łupek', 'Blacha', 'Papa', 'Eternit (płyty azbestowo-cementowe)', 'Gont lub deski', 'Nie wiem'] },
       { id: 'problem', t: 'Co chcesz zrobić albo co się dzieje?', o: ['Dach przecieka', 'Chcę zaimpregnować deski lub więźbę', 'Chcę ocieplić poddasze', 'Przekładam lub wymieniam pokrycie', 'Szczelina przy ścianie szczytowej', 'Chcę podnieść dach lub dodać okna', 'Planuję remont całego domu — od czego zacząć'] },
       { id: 'zabytek', t: 'Czy budynek jest objęty ochroną zabytków?', o: ZAB_O }
@@ -356,7 +469,7 @@ const AREAS = {
     qs: [
       { id: 'typ', t: 'Jaki to budynek?', o: ['Obora', 'Stajnia', 'Chlew', 'Kurnik lub owczarnia', 'Dom z oborą pod jednym dachem', 'Stodoła lub spichlerz'] },
       { id: 'plan', t: 'Co ma być w środku po remoncie?', o: ['Nadal budynek dla zwierząt', 'Warsztat, magazyn, pracownia', 'Mieszkanie lub pokoje gościnne', 'Jeszcze nie wiem'] },
-      { id: 'mur', t: 'Z czego są ściany?', o: ['Cegła', 'Kamień', 'Kamień i cegła', 'Glina (glinobitka, cegła suszona)', 'Szachulec (mur pruski)', 'Bal drewniany', 'Nie wiem'] },
+      Object.assign({}, Q_DOM, { t: 'Jak jest zbudowany budynek?' }),
       { id: 'objaw', t: 'Co widać na ścianach?', o: ['Białe naloty lub kryształki', 'Tynk łuszczy się i odpada pasem przy dole', 'Ściana ciemna i wilgotna mimo suchej pogody', 'Nic szczególnego', 'Nie wiem'] }
     ] },
   hurt: { name: 'Szukam dostawcy materiałów (firma)', short: 'hurtownie, wykonawcy, sklepy — towar z Niemiec, palety i całe auta', hl: 'a-hurt',
@@ -368,6 +481,57 @@ const AREAS = {
       { id: 'dostawa', t: 'Jak odbierasz?', o: ['Dostawa na nasz adres', 'Odbiór własny w Lubaniu', 'Jeszcze nie wiem'] }
     ] }
 };
+
+// v6.3 (program v2, FAZA 2b.2 — SPEC grupowania menu, WERSJA 2 + WNIOSKI, decyzje Darka 24.11): pierwsze menu = 4 grupy wg etapów
+// procesu (kolejność grup stała). Grupa to wyłącznie nawigacja: identyfikatory obszarów (data-area), pytania, klucze odpowiedzi,
+// wynik i ekrany opinii (opWidok: cały ekran grup to nadal 'start_obszar', OP.EKRANY_STALE w hubie bez zmian) — bez zmian.
+// Każdy obszar jest na liście dokładnie jednej grupy (o). Kolejność w grupie wg Trends + FB_PYTANIA (raport K, decyzje Darka 24.11):
+// „Naprawiam usterki” — Drewno pierwsze; „Kupuję albo oceniam dom” — Zabytek przed Kupnem; „Wykańczam wnętrza” — płyty gliniane
+// pierwsze (zasada, nie popularność). Obszary bez miejsca w SPEC (ogłoszenie, mur, dach, strop — dodane po SPEC v1) przydzielone
+// wg tematu: ogłoszenie → zakup, mur i dach → usterki, strop → ocieplenie (W4: strop/strych to najczęstszy temat ocieplenia).
+// Wejścia (w): skróty do ISTNIEJĄCYCH obszarów z ustawionymi odpowiedziami (bez nowej logiki) — chipy miejsc ocieplenia (W4),
+// „Naprawiam wcześniejszy remont” (W2: Wilgoć → cokół, Ocieplenie → już ocieplona, Tynk → gładź gipsowa, Strop → folia)
+// i „Sucha zabudowa — płyty gliniane” (tynk · nowy · wewnątrz, FAZA 2a.2). Wejście: { obszar, krok (pierwszy pokazany), ans }.
+const WEJSCIA = {
+  ociepl_strop: { t: 'Strop / strych', obszar: 'ocieplenie', krok: 2, ans: { miejsce: 'Strop' } },
+  ociepl_dach: { t: 'Dach / poddasze', obszar: 'ocieplenie', krok: 2, ans: { miejsce: 'Dach między krokwiami' } },
+  ociepl_sciana: { t: 'Ściana od wewnątrz', obszar: 'ocieplenie', krok: 2, ans: { miejsce: 'Ściana od wewnątrz' } },
+  ociepl_podloga: { t: 'Podłoga', obszar: 'ocieplenie', krok: 2, ans: { miejsce: 'Podłoga' } },
+  remont_cokol: { t: 'Cement, lepik lub papa na cokole', obszar: 'wilgoc', krok: 1, ans: { otocz: 'Lepik, papa lub tynk cementowy na cokole' } },
+  remont_styropian: { t: 'Styropian na ścianie', obszar: 'ocieplenie', krok: 2, ans: { miejsce: 'Ściana od zewnątrz', juz: 'Tak, styropianem' } },
+  remont_gips: { t: 'Gładź gipsowa lub farba akrylowa na ścianie', obszar: 'tynk', krok: 2, ans: { cel: 'Zdjąć gładź gipsową lub farbę' } },
+  remont_folia: { t: 'Folia na stropie, pod deskami', obszar: 'strop', krok: 1, ans: { objaw: 'Pod deskami leży folia' } },
+  sucha: { t: 'Sucha zabudowa — płyty gliniane', s: 'łatwy montaż, także bez doświadczenia w tynkowaniu', obszar: 'tynk', krok: 3, ans: { cel: 'Nowy tynk', gdzie: 'Wewnątrz' } }
+};
+// Piktogramy grup (SPEC): klucz + lupa · kropla + pęknięcie · dom z falą ciepła · paca.
+const IKONY = {
+  klucz: '<circle cx="10" cy="10" r="5.5"/><path d="M14 14l7 7M17.5 17.5l2-2"/><path d="M8 10h4"/>',
+  kropla: '<path d="M8 3c3 4 5 6.5 5 9a5 5 0 0 1-10 0c0-2.5 2-5 5-9z"/><path d="M17 3l-2 5 3 2-2 5 2 6"/>',
+  dom: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M9 17c1-1.5 2-1.5 3 0s2 1.5 3 0"/><path d="M9 14c1-1.5 2-1.5 3 0s2 1.5 3 0"/>',
+  paca: '<path d="M3 15h14l3-4H6z"/><path d="M11 11V6a2 2 0 0 1 2-2h3"/><path d="M4 19h16"/>'
+};
+const GRUPY = {
+  kupuje: { name: 'Kupuję albo oceniam dom', short: 'zakup, stan techniczny, zabytek i konserwator, adaptacja budynku gospodarczego', ik: 'klucz',
+    hl: ['a-parter', 'a-pietro'], legend: '<b>Ocena domu</b> — dom ogląda się od fundamentu w górę, aż po dach.',
+    o: ['zabytek', 'kupno', 'ogloszenie', 'gosp'] },
+  naprawiam: { name: 'Naprawiam usterki', short: 'zniszczone drewno, pleśń, wilgoć, pęknięcia muru, spoiny, dach', ik: 'kropla',
+    hl: ['a-wilgoc', 'a-sciana'], legend: '<b>Usterki</b> — najpierw szukamy przyczyny: zwykle to woda przy cokole, pod dachem albo w murze.',
+    o: ['drewno', 'plesn', 'wilgoc', 'pekniecia', 'mur', 'dach'],
+    w: { t: 'Naprawiam wcześniejszy remont (cement, styropian, gips, folia)', o: ['remont_cokol', 'remont_styropian', 'remont_gips', 'remont_folia'] } },
+  ocieplam: { name: 'Ocieplam i ogrzewam', short: 'ocieplenie (dach, strop, ściany, podłoga), okna, ogrzewanie', ik: 'dom',
+    hl: ['a-ocieplenie', 'a-strop'], legend: '<b>Ciepło</b> — w starym domu najpierw ustalamy, gdzie ucieka ciepło i jak ściana wysycha.',
+    o: ['ocieplenie', 'podloga', 'strop', 'okna', 'ogrzewanie'], chipy: { ocieplenie: ['ociepl_strop', 'ociepl_dach', 'ociepl_sciana', 'ociepl_podloga'] } },
+  wykanczam: { name: 'Wykańczam wnętrza', short: 'płyty gliniane, tynki, farby — z wyliczeniem materiału', ik: 'paca',
+    hl: ['a-tynk'], legend: '<b>Wykończenie</b> to ostatnia warstwa przy ścianie, od strony pokoju.',
+    o: ['tynk'], przed: ['sucha'] }
+};
+// Grupa obszaru (dla głębokiego linku i powrotu) — z listy o; hurt bez grupy (link „Jestem firmą” pod grupami).
+const GRUPA_OBSZARU = {};
+Object.keys(GRUPY).forEach(g => GRUPY[g].o.forEach(k => { GRUPA_OBSZARU[k] = g; }));
+// Głęboki link ?obszar=<klucz z AREAS>: po krainie i kodzie pocztowym (dane do wyniku i zgłoszenia) obszar otwiera się wprost,
+// bez menu grup; „Wstecz” z obszaru wraca do jego grupy. Zły klucz → zwykłe menu.
+const OBSZAR_Z_ADRESU = (v => Object.prototype.hasOwnProperty.call(AREAS, v) ? v : '')(ADRES.get('obszar') || '');
+let obszarZAdresuUzyty = false;
 
 const KLEJ_OK = ['Cegła', 'Poroton', 'Silikat', 'Tynk gliniany'];
 const WKRET_OK = ['Płyta drewnopochodna', 'Deskowanie'];
@@ -494,8 +658,12 @@ function nowyUuid() {
   return x.slice(0, 8) + '-' + x.slice(8, 12) + '-' + x.slice(12, 16) + '-' + x.slice(16, 20) + '-' + x.slice(20);
 }
 let st = { area: null, step: 0, ans: {}, sent: null };
+// v6.3: otwarta grupa menu (klucz GRUPY) — zostaje przy przejściu do obszaru, żeby „Wstecz” z obszaru wróciło do jego grupy.
+let grupa = null;
+// „Jaki to dom” — odpowiedź raz na sprawę (sesja strony): { dom, dom_dol?, dom_gora?, dom_rozp? } (v6.2).
+let domPam = {};
 // Pytanie o status ochrony — raz na sprawę, w każdym obszarze poza hurtem (na końcu, jeśli obszar go nie ma).
-const qsOf = a => { const q = a.qsFn ? a.qsFn(st.ans) : a.qs; return (a === AREAS.hurt || q.some(x => x.id === 'zabytek')) ? q : q.concat([Q_ZAB]); };
+const qsOf = a => { const q = domRozwin(a.qsFn ? a.qsFn(st.ans) : a.qs, st.ans); return (a === AREAS.hurt || q.some(x => x.id === 'zabytek')) ? q : q.concat([Q_ZAB]); };
 const $ = s => document.querySelector(s);
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -504,7 +672,7 @@ function audyt(why) {
 }
 const skan = `<div class="box svc"><div><h3>Skanowanie 3D budynku</h3><p>Dokładny pomiar i inwentaryzacja przed projektem lub dużą renowacją.</p></div><span class="tag">zakres i cena do ustalenia</span></div>`;
 
-const KONCOWE = ['Nie wiem', 'Jeszcze nie wiem', 'Nic konkretnego', 'Nic, planuję remont', 'W kilku pomieszczeniach', 'W kilku miejscach', 'Inny region lub nie wiem'];
+const KONCOWE = ['Nie wiem', DOM_NADAL, 'Jeszcze nie wiem', 'Nic konkretnego', 'Nic, planuję remont', 'W kilku pomieszczeniach', 'W kilku miejscach', 'Inny region lub nie wiem'];
 function sortO(o) {
   if (o.some(v => /\d/.test(v)) || o.some(v => /^(Tak|Nie)(,|$)/.test(v))) return o;
   const kon = o.filter(v => KONCOWE.includes(v));
@@ -586,7 +754,9 @@ function statusBox() {
 //   elewacja (C, D)   — ocieplenie, miejsce „Ściana od zewnątrz”;
 //   szachulec (E, F)  — ocieplenie, miejsce „Ściana od wewnątrz” ORAZ podloze „Szachulec” (od zewnątrz NIE — E i F są od środka);
 //   podloga (G)       — ocieplenie, miejsce „Podłoga” ORAZ podl „Na gruncie”; albo obszar podloga, rodzaj „Na gruncie: klepisko, cegła lub kamień”;
-//   szachulec_zew (H) — ocieplenie, miejsce „Ściana od zewnątrz” ORAZ podloze „Szachulec (mur pruski)” (K22.2; od wewnątrz NIE);
+//   szachulec_zew (H) — ocieplenie, miejsce „Ściana od zewnątrz” ORAZ dom z drewnianą kratą (szachulec — cały dom, dół albo góra
+//                       domu mieszanego, rozpoznany przy „Nie wiem”; v6.2) albo — stare zgłoszenie — podloze „Szachulec (mur pruski)”
+//                       (K22.2; od wewnątrz NIE);
 //   każdy inny obszar / brak odpowiedzi — NIE pasuje.
 function rozWejscieZgodne(wejscie, obszar, odpowiedzi) {
   const x = odpowiedzi || {}, m = x.miejsce;
@@ -595,7 +765,7 @@ function rozWejscieZgodne(wejscie, obszar, odpowiedzi) {
     if (wejscie === 'elewacja') return m === 'Ściana od zewnątrz';
     if (wejscie === 'szachulec') return m === 'Ściana od wewnątrz' && x.podloze === 'Szachulec';
     if (wejscie === 'podloga') return m === 'Podłoga' && x.podl === 'Na gruncie';
-    if (wejscie === 'szachulec_zew') return m === 'Ściana od zewnątrz' && x.podloze === 'Szachulec (mur pruski)';
+    if (wejscie === 'szachulec_zew') return m === 'Ściana od zewnątrz' && (x.podloze === 'Szachulec (mur pruski)' || domSzach(x));
     return false;
   }
   if (obszar === 'podloga') return wejscie === 'podloga' && x.rodzaj === 'Na gruncie: klepisko, cegła lub kamień';
@@ -610,8 +780,8 @@ function rozDopasowanie(obszar, odpowiedzi) {
   if (x.miejsce === 'Ściana od wewnątrz' && x.podloze === 'Cegła' && x.pom !== 'Piwnica') return { p: { wariant: 'ROZ-A-MUR-WEW-WLOKNO' }, t: 'mur ceglany od środka z płytą z włókna drzewnego' };
   if (x.miejsce === 'Ściana od wewnątrz' && x.podloze === 'Szachulec') return { p: { wejscie: 'szachulec' }, t: 'szachulec od środka — dwa warianty układu' };
   // K22.2: szachulec od zewnątrz → wyłącznie H (wypełnienie pól), NIGDY E/F (te są od środka)
-  if (x.miejsce === 'Ściana od zewnątrz' && x.podloze === 'Szachulec (mur pruski)') return { p: { wejscie: 'szachulec_zew' }, t: 'szachulec od zewnątrz — wymiana lub uzupełnienie wypełnienia pól' };
-  if (x.miejsce === 'Ściana od zewnątrz' && ['Cegła', 'Kamień'].includes(x.podloze) && x.juz === 'Nie') return { p: { porownaj: 'C,D' }, t: 'elewacja z ociepleniem i bez — porównanie obok siebie' };
+  if (x.miejsce === 'Ściana od zewnątrz' && domSzach(x)) return { p: { wejscie: 'szachulec_zew' }, t: 'szachulec od zewnątrz — wymiana lub uzupełnienie wypełnienia pól' };
+  if (x.miejsce === 'Ściana od zewnątrz' && domTylko(x, 'cegla', 'kamien') && x.juz === 'Nie') return { p: { porownaj: 'C,D' }, t: 'elewacja z ociepleniem i bez — porównanie obok siebie' };
   if (x.miejsce === 'Podłoga' && x.podl === 'Na gruncie') return { p: { wejscie: 'podloga' }, t: 'podłoga na gruncie bez cementu' };
   return null;
 }
@@ -649,10 +819,17 @@ function rozBox() {
 // podłoże z WKRET_OK (płyta drewnopochodna, deskowanie) → przykrecanie z podłożem konfiguratora osb / deskowanie (K23.4).
 // Każdy inny obszar i ścieżka (trudne podłoża, dach/strop, tynk) → brak przycisku (A2, nie zgadujemy).
 const KONFIG_PODLOZE = { 'Płyta drewnopochodna': 'osb', 'Deskowanie': 'deskowanie' };
+// K23.1 w. 7–8 — zaakceptowane przez Darka 24.11: przycisk „Policz materiał” w boksie „Sucha zabudowa” ścieżki Tynk (tynk gliniany →
+// klejenie, deskowanie → przykręcanie z podloze=deskowanie). Wyłączenie: false (jedna zmiana; testy w test_k23.js czytają tę stałą).
+const K23_TYNK_W78 = true;
 function konfigSystem(obszar, odp) {
   const a = arguments.length ? obszar : st.area, x = arguments.length ? (odp || {}) : st.ans;
-  if (a !== 'ocieplenie' || x.miejsce !== 'Ściana od wewnątrz') return '';
-  return KLEJ_OK.includes(x.podloze) ? 'klejenie' : WKRET_OK.includes(x.podloze) ? 'przykrecanie' : '';
+  if (a === 'ocieplenie' && x.miejsce === 'Ściana od wewnątrz') return KLEJ_OK.includes(x.podloze) ? 'klejenie' : WKRET_OK.includes(x.podloze) ? 'przykrecanie' : '';
+  // v6.2 (FAZA 2a.2, wiersze 7–8 — zaakceptowane przez Darka 24.11): tynk · „Nowy tynk” · „Wewnątrz” — sucha zabudowa jako pierwsza opcja;
+  // przycisk tylko przy podłożu jednoznacznym wg karty: tynk gliniany → klejenie, deskowanie → przykręcanie (podłoże pełne).
+  // Pozostałe podłoża (mur bez tynku, tynk wapienny, gładź, bal, kamień, nie wiem) → ruszt albo oględziny → bez przycisku.
+  if (K23_TYNK_W78 && a === 'tynk' && (!x.cel || x.cel === 'Nowy tynk') && x.gdzie === 'Wewnątrz') return x.podloze === 'Tynk gliniany' ? 'klejenie' : x.podloze === 'Deskowanie' ? 'przykrecanie' : '';
+  return '';
 }
 // K23.2 — adres konfiguratora = ENDPOINT builda (…/exec). Źródło bez ENDPOINT albo zaślepka (__…) → brak przycisku.
 function konfigBaza() {
@@ -672,7 +849,7 @@ function konfigBox() {
   return `<div class="box" data-konfig><h3>Wycena orientacyjna</h3><p>${konfigSystem() === 'przykrecanie' ? 'Konfigurator płyt glinianych policzy materiał na Twoje metry: płyty, mocowanie i tynk.' : 'Konfigurator płyt glinianych policzy materiał na Twoje metry: płyty, klej i tynk.'}</p><a class="btn go" data-konfig-link href="${esc(u)}" target="_blank" rel="noopener">Policz materiał</a></div>`;
 }
 // K22.3 — blok w wyniku przy ocieplenie + „Ściana od zewnątrz” + „Szachulec (mur pruski)”: z tekstu Doc kolejki 22 (A1) tylko część o wypełnieniu pól
-// (decyzja Darka 23.11 do raportu 22: zasadą zostaje zdanie „Ścian ryglowych…” z korpusu, bez powtórzonego „nie ociepla się od zewnątrz”).
+// (decyzja Darka 23.11 do raportu 22: zasadą zostaje zdanie „Ścian ryglowych…”, bez powtórzonego „nie ociepla się od zewnątrz”).
 const SZACH_ZEW_TXT = 'Od zewnątrz można ewentualnie wymienić albo uzupełnić wypełnienie pól — bloczkiem konopnym albo cegłą glinianą, w formacie dobranym do grubości belek. Dobór ustalamy na oględzinach.';
 const GEZ_P = '<p><b>Gminna ewidencja zabytków:</b> to inny rodzaj ochrony niż rejestr. Wymagania przy remoncie zależą od miejscowego planu i decyzji gminy — sprawdź je w urzędzie gminy, zanim zaczniesz prace.</p>';
 function ocenaAudytuDane() {
@@ -695,7 +872,7 @@ function ocenaAudytuDane() {
       const klej = KLEJ_OK.includes(x.podloze);
       if (x.podloze === 'Bal drewniany') up(1, 'Grubość ocieplenia trzeba dopasować do grubości bala.');
       else if (['Kamień', 'Mur z gliny', 'Szachulec', 'Konstrukcja szkieletowa'].includes(x.podloze)) up(2, 'Ocieplenie od wewnątrz takiej ściany wymaga obliczenia wilgotności dla konkretnego budynku.');
-      // Deskowanie: system ustalony (przykręcanie, K23.4), ale co jest pod deskami — korpus milczy → audyt zalecany (poziom 1,
+      // Deskowanie: system ustalony (przykręcanie, K23.4), ale co jest pod deskami — brak źródła → audyt zalecany (poziom 1,
       // decyzja Darka 24.11, kolejka 23c; do v6.0-23b wpisu nie było, w 08c7f8a był na poziomie 2).
       else if (x.podloze === 'Deskowanie') up(1, 'Deskowanie może kryć różne konstrukcje — trzeba zobaczyć, co jest pod spodem.');
       else if (!klej && ['Gładź gipsowa', 'Tynk wapienny'].includes(x.podloze)) up(1, 'Podłoże do oceny przed montażem.');
@@ -703,7 +880,7 @@ function ocenaAudytuDane() {
     if (m === 'Ściana od zewnątrz') {
       up(1, 'Ocieplenie z zewnątrz zmienia wygląd domu i sposób, w jaki ściana wysycha.');
       if (wkz(x)) up(2, 'W zabytku lub strefie ochrony ocieplenie elewacji wymaga pozwolenia konserwatora i często nie jest dopuszczalne.');
-      if (x.podloze === 'Szachulec (mur pruski)') up(2, 'Ścian ryglowych (szachulca) nie ociepla się od zewnątrz.');
+      if (domSzach(x)) up(2, 'Ścian ryglowych (szachulca) nie ociepla się od zewnątrz.');
       if (['Tak, styropianem', 'Tak, wełną mineralną'].includes(x.juz)) up(2, 'Ściana jest już ocieplona — stan muru pod ociepleniem trzeba ocenić przed decyzją o zdjęciu.');
     }
     if (m === 'Dach między krokwiami' || m === 'Dach na krokwiach' || m === 'Strop') {
@@ -715,7 +892,7 @@ function ocenaAudytuDane() {
     if (m === 'Podłoga' && ['Nową wylewkę betonową', 'Ogrzewanie podłogowe', 'Płytki w kuchni lub łazience'].includes(x.plan)) up(2, 'Zmiana warstw podłogi wpływa na wilgoć w ścianach — układ trzeba dobrać dla budynku.');
     if (m === 'Podłoga' && x.podl !== 'Drewniana na legarach') up(2, 'Podłoga na gruncie lub nad piwnicą — trzeba ocenić wilgoć od spodu.');
     if (m === 'Izolacja pozioma (odcięcie wilgoci od fundamentu)') {
-      if (x.bud !== 'Drewniany na podwalinie') up(2, 'W murze izolację poziomą robi się dopiero po zbadaniu przyczyn wilgoci — to prace inwazyjne.');
+      if (!domIzolDrewno(x)) up(2, 'W murze izolację poziomą robi się dopiero po zbadaniu przyczyn wilgoci — to prace inwazyjne.');
       else up(x.objaw === 'Podwalina leży w gruncie lub gnije' ? 2 : 1, 'Stan podwaliny i podmurówki do oceny na miejscu.');
     }
     if (DUZE.includes(x.metry) || x.m2 > 100) up(1, 'Duża powierzchnia — pomiar i plan prac ograniczą ryzyko i koszt.');
@@ -792,7 +969,7 @@ function ocenaAudytuDane() {
   if (a === 'kupno') {
     up(x.stan === 'Zamieszkany, zadbany' ? 1 : 2, 'Przed zakupem warto mieć niezależną ocenę stanu technicznego — od niej zależy koszt remontu.');
     if (wkz(x)) up(2, 'Ochrona konserwatorska zmienia zakres i koszt remontu — trzeba ją sprawdzić przed zakupem.');
-    if (x.konstr === 'Mieszany') up(1, 'Dom o kilku konstrukcjach — każdą część ocenia się osobno.');
+    if (x.dom === DOM.mieszany) up(1, 'Dom o kilku konstrukcjach — każdą część ocenia się osobno.');
     if (x.obawa && x.obawa !== 'Nic konkretnego') up(2, 'Konkretny objaw przed zakupem — trzeba go sprawdzić na miejscu, zanim podpiszesz umowę.');
   }
   if (a === 'zabytek') {
@@ -868,7 +1045,7 @@ function wStrop(x) {
       <p>W dawnych stropach drewnianych na ślepym pułapie między belkami leży polepa — glina zmieszana z plewami, słomą albo igliwiem. Dociąża strop, poprawia izolację i chroni przed ogniem, bo glina jest niepalna. Dlatego polepy nie usuwa się bez potrzeby. Jeśli trzeba, uzupełnia się ją takimi samymi albo podobnymi materiałami, na przykład keramzytem.</p>
       <p>Usuwanie polepy i dociskanie konstrukcji może rozszczelnić sufit albo unieść belki stropowe. Decyzji o odciążeniu stropu nie podejmuj bez konstruktora.</p>
       ${W[x.warstwa] || ''}${P[x.plan] || ''}${O[x.objaw] || ''}
-      <p>Twoje odpowiedzi: ${esc(x.bud)} · ${esc(x.warstwa)} · ${esc(x.plan)} · ${esc(x.objaw)}.</p></div>
+      <p>Twoje odpowiedzi: ${esc(domOpis(x))} · ${esc(x.warstwa)} · ${esc(x.plan)} · ${esc(x.objaw)}.</p></div>
       ${audyt('Odsłonięcie i ocena belek, wypełnienia i podłogi; sprawdzenie nośności przed zmianą ciężaru stropu.')}`;
 }
 
@@ -888,7 +1065,7 @@ function wDach(x) {
       ${T[x.problem] || ''}
       ${x.pokrycie === 'Eternit (płyty azbestowo-cementowe)' ? '<p><b>Eternit</b> leżący na dachu nie stanowi bezpośredniego zagrożenia, dopóki nic się z nim nie dzieje. Najgroźniejszy jest demontaż — zdjęcie i utylizację zleć wyspecjalizowanej firmie, nie rób tego samodzielnie.</p>' : ''}
       ${wkz(x) ? '<p><b>Dom w rejestrze zabytków albo w strefie ochrony?</b> Zdjęcie i wymiana pokrycia oraz zmiany bryły dachu wymagają pozwolenia konserwatora.</p>' : ''}${gez(x) ? GEZ_P : ''}
-      <p>Twoje odpowiedzi: ${esc(x.bud)} · ${esc(x.pokrycie)} · ${esc(x.problem)}.</p></div>
+      <p>Twoje odpowiedzi: ${esc(domOpis(x))} · ${esc(x.pokrycie)} · ${esc(x.problem)}.</p></div>
       ${audyt(x.problem === 'Planuję remont całego domu — od czego zacząć' ? 'Diagnoza całego domu i plan kolejności prac.' : 'Oględziny pokrycia, deskowania i więźby od strony poddasza; ocena wilgotności drewna i plan prac przy dachu.')}${skan}`;
 }
 
@@ -986,7 +1163,7 @@ function wynik() {
       ${x.otocz === 'Folia kubełkowa' ? `<p><b>Folia kubełkowa przy starym fundamencie</b> bez izolacji poziomej wymaga oceny na miejscu — liczy się to, czy mur ma jak wysychać i dokąd odpływa woda.</p>` : ''}
       ${x.zapach ? `<p><b>Zapach stęchlizny</b> to jeden z pierwszych objawów zawilgocenia, często razem z pleśnią lub grzybem. Grzyby rozwijają się tam, gdzie jest wilgotno, ciemno i brak przepływu powietrza — przy oględzinach sprawdza się takie miejsca w pierwszej kolejności.</p>` : ''}
       ${ryzyko ? `<p><b>Uwaga:</b> ${esc(x.powloka.toLowerCase())} na starym murze może zatrzymywać wilgoć w ścianie. Taka powłoka wymaga oceny na miejscu.</p>` : ''}
-      <p>Twoje odpowiedzi: ${esc(x.gdzie)} · ${esc(x.pom)} · ${esc(x.otocz)} · ${esc(x.mur)} · ${esc(x.powloka)}${x.zapach ? ' · zapach stęchlizny' : ''}.</p></div>
+      <p>Twoje odpowiedzi: ${esc(x.gdzie)} · ${esc(x.pom)} · ${esc(x.otocz)} · ${esc(domOpis(x))} · ${esc(x.powloka)}${x.zapach ? ' · zapach stęchlizny' : ''}.</p></div>
       ${audyt('Pomiary wilgotności i zasolenia na kilku wysokościach muru, sprawdzenie dachu, odwodnienia i poziomu terenu, plan osuszania i dobór tynku.')}${skan}`;
   }
   if (a === 'ocieplenie') {
@@ -1013,13 +1190,14 @@ function wynik() {
       ${trudne ? audyt('Dla tego podłoża najpierw oględziny: stan muru i wilgotność zdecydują o systemie.') : ''}`;
     }
     if (m === 'Ściana od zewnątrz') {
-      const drew = ['Bal drewniany', 'Konstrukcja szkieletowa'].includes(x.podloze);
-      const rygl = x.podloze === 'Szachulec (mur pruski)';
+      const drew = domDrewno(x);
+      const rygl = domSzach(x);
       return `<div class="box main"><h3>${rygl ? 'Szachulca nie ocieplamy z zewnątrz' : 'Ocieplenie z zewnątrz — najpierw elewacja i konserwator'}</h3>
         ${rygl ? `<p>Ścian ryglowych nie ociepla się od zewnątrz — szpeci to dom i prowadzi do zawilgocenia konstrukcji. Jeśli ocieplenie jest konieczne, robi się je od wewnątrz (ścieżka „Ściana od wewnątrz”).</p>
         <p data-szachulec-zew>${SZACH_ZEW_TXT}</p>` : ''}
         ${wkz(x) ? `<p><b>Zabytek albo strefa ochrony:</b> ocieplenie elewacji wymaga pozwolenia konserwatora. Przy elewacjach o wartości historycznej izolacja zewnętrzna jest praktycznie niedopuszczalna — wtedy alternatywą jest ocieplenie od wewnątrz.</p>` : ''}
         ${gez(x) ? GEZ_P : ''}
+        ${domMa(x, 'przyslup') && !rygl ? `<p><b>Dom przysłupowy:</b> piętro takiego domu bywa w szachulcu, a szachulca nie ociepla się od zewnątrz. Każdą część domu — izbę z bali, piętro i część murowaną — ocenia się osobno.</p>` : ''}
         ${drew && !rygl ? `<p><b>Ściana drewniana:</b> ocieplenie układa się między elementami drewnianego rusztu i zakrywa deską elewacyjną albo deskowaniem. Każda kolejna warstwa na zewnątrz musi łatwiej przepuszczać parę niż poprzednia.</p>` : ''}
         ${!drew && !rygl ? `<p><b>Mur:</b> sprawdza się elewacja wentylowana — płyty z włókna drzewnego na murze, szczelina wentylacyjna co najmniej 3 cm i okładzina, np. deskowanie. Na budynkach wyższych niż 25 m przepisy wymagają ocieplenia i okładziny niepalnej.</p>` : ''}
         ${['Tak, styropianem', 'Tak, wełną mineralną'].includes(x.juz) ? `<p><b>Ściana jest już ocieplona:</b> w starych domach zaleca się usunięcie styropianu i wełny mineralnej ze ścian historycznych. Zanim zdejmiesz ocieplenie, trzeba ocenić stan muru pod spodem i zaplanować, co położyć w zamian. Jeśli w domu pojawiły się objawy — odpadający tynk, pleśń, zapach stęchlizny — opisz je w zgłoszeniu.</p>` : ''}
@@ -1064,7 +1242,7 @@ function wynik() {
         ${leg && x.plan === 'Odnowić deski na legarach' ? '' : audyt('Pomiar wilgoci od spodu, ocena podłoża i ścian przy podłodze, dobór układu warstw.')}${skan}`;
     }
     if (m === 'Izolacja pozioma (odcięcie wilgoci od fundamentu)') {
-      const drew = x.bud === 'Drewniany na podwalinie';
+      const drew = domIzolDrewno(x);
       return `<div class="box main"><h3>Izolacja pozioma — ochrona przed wilgocią z gruntu</h3>
         <p>To nie jest ocieplenie, tylko przerwa, która nie pozwala wilgoci z fundamentu podchodzić w górę ściany. Bez niej każde ocieplenie i nowy tynk przy dole ścian szybko zawilgną.</p>
         ${drew ? '<p><b>Dom drewniany:</b> podwalina musi leżeć nad gruntem, na podmurówce wysokiej na co najmniej 30–40 cm, żeby nie sięgały jej odbite krople deszczu. Między podmurówką a podwaliną kładzie się dwie warstwy papy na tekturze bez posypki. Dawniej wystarczało też opalenie podwaliny od spodu na kilka milimetrów. Przy domu zamiast betonowej opaski robi się pas grubego żwiru na piasku.</p>' : '<p><b>Mur:</b> najpierw ustala się przyczynę wilgoci — dach, rynny, poziom terenu, wodę odbijającą się od opaski. Dopiero gdy to nie wystarcza, wykonuje się izolację poziomą w murze, np. iniekcją. To prace inwazyjne: robi się je po badaniach, według projektu i pod nadzorem, bo źle dobrana iniekcja (np. w granicie) nie działa.</p>'}
@@ -1092,10 +1270,11 @@ function wynik() {
     }[x.efekt];
     const plyty = x.podloze !== 'Płyta gliniana';
     const klej = KLEJ_OK.includes(x.podloze);
-    return `${plyty ? `<div class="box main"><h3>Najprościej: płyty gliniane</h3>
-      <p><b>Płyty gliniano-konopne Schleusner (sucha zabudowa — łatwy montaż)</b> to najprostsza droga do glinianej ściany, także bez doświadczenia w tynkowaniu. ${klej ? 'Na takie podłoże przykleja się je wprost do ściany klejem glinianym.' : WKRET_OK.includes(x.podloze) ? 'Na takie podłoże przykręca się je albo przypina zszywkami wprost, bez rusztu — wystarczy cieńsza płyta, 10 lub 14 mm.' : 'Na takim podłożu montuje się je na ruszcie z łat.'} Na wierzch idzie siatka zatopiona w kleju glinianym albo tynku drobnym i cienka warstwa tynku — razem co najmniej 3 mm. Płyt nie trzeba gruntować przed tynkiem glinianym. Płyty kładzie się na suchą ścianę — jeśli mur jest zawilgocony, najpierw trzeba usunąć przyczynę.</p>${x.metry ? `<p>Ilość: ${esc(ile(x))}.</p>` : ''}</div>` : ''}
+    return `${plyty ? `<div class="box main" data-sucha><h3>Sucha zabudowa — płyty gliniane (samodzielny montaż)</h3>
+      <p><b>Płyty gliniano-konopne Schleusner (sucha zabudowa — łatwy montaż)</b> to najprostsza droga do glinianej ściany, także bez doświadczenia w tynkowaniu. ${klej ? 'Na takie podłoże przykleja się je wprost do ściany klejem glinianym.' : WKRET_OK.includes(x.podloze) ? 'Na takie podłoże przykręca się je albo przypina zszywkami wprost, bez rusztu — wystarczy cieńsza płyta, 10 lub 14 mm.' : 'Na takim podłożu montuje się je na ruszcie z łat.'} Na wierzch idzie siatka zatopiona w kleju glinianym albo tynku drobnym i cienka warstwa tynku — razem co najmniej 3 mm. Płyt nie trzeba gruntować przed tynkiem glinianym. Płyty kładzie się na suchą ścianę — jeśli mur jest zawilgocony, najpierw trzeba usunąć przyczynę.</p>${x.metry ? `<p>Ilość: ${esc(ile(x))}.</p>` : ''}${klej ? '<p>Na suficie płyty się przykręca, nie klei.</p>' : ''}
+      ${konfigBox()}</div>` : ''}
     ${x.emisja ? CERT_BOX() : ''}
-    <div class="box main"><h3>${plyty ? 'Albo: tynk gliniany' : 'Tynk gliniany do wnętrza'}</h3><p>Podłoże: ${esc(x.podloze)}.${x.podloze === 'Płyta gliniana' ? ' Na płytach gliniano-konopnych tynk wierzchni kładziemy po zatopieniu siatki w kleju glinianym lub tynku drobnym — razem co najmniej 3 mm.' : ''}</p><ul>${prod}</ul></div>
+    <div class="box main" data-tynk-druga><h3>${plyty ? 'Druga opcja: tynk gliniany' : 'Tynk gliniany do wnętrza'}</h3><p>Podłoże: ${esc(x.podloze)}.${x.podloze === 'Płyta gliniana' ? ' Na płytach gliniano-konopnych tynk wierzchni kładziemy po zatopieniu siatki w kleju glinianym lub tynku drobnym — razem co najmniej 3 mm.' : ''}</p><ul>${prod}</ul></div>
       ${x.podloze !== 'Płyta gliniana' ? audyt('Ocena starego tynku i podłoża przed nową warstwą.') : ''}`;
   }
   if (a === 'plesn') {
@@ -1148,7 +1327,7 @@ function wynik() {
       ${audyt('Oględziny konstrukcji od fundamentu po dach, pomiar wilgotności drewna, wskazanie elementów do wymiany i zakresu ekspertyz: konstrukcyjnej, mykologicznej, entomologicznej.')}${skan}`;
   }
   if (a === 'ogloszenie') {
-    const drew = x.konstr === 'Drewno: bale' || x.konstr === 'Szachulec (mur pruski)' || x.konstr === 'Kilka konstrukcji';
+    const drew = domDrewno(x) || x.dom === DOM.mieszany;
     const ryzyka = [];
     if (x.ociepl === 'Tak, styropian lub nowa elewacja') ryzyka.push('<b>Ocieplenie na starym murze:</b> w starych domach zaleca się usunięcie styropianu i wełny mineralnej ze ścian historycznych. Doliczy to koszt, a stan muru pod spodem poznasz dopiero po odkrywce w kilku miejscach.');
     if (x.dach === 'Widać ubytki, zacieki lub zapadnięcia') ryzyka.push('<b>Nieszczelny dach:</b> to pierwsza rzecz do naprawy w starym domu. Woda z dachu niszczy więźbę, stropy i mury — sprawdź na miejscu belki i deskowanie od spodu, najlepiej po deszczu.');
@@ -1175,7 +1354,7 @@ function wynik() {
       <li>pęknięcia nad oknami i drzwiami oraz w narożnikach,</li>
       <li>kratki wentylacyjne w cokole pod podłogą z desek — czy są drożne.</li></ul>
       <p>Zrób zdjęcia tych miejsc — przydadzą się przy ocenie domu.</p>
-      <p>Twoje odpowiedzi: ${esc(x.konstr)} · ${esc(x.wiek)} · ${esc(x.ociepl)} · dach: ${esc(x.dach)} · ${esc(x.pusty)} · ochrona: ${esc(x.zabytek)}.</p></div>
+      <p>Twoje odpowiedzi: ${esc(domOpis(x))} · ${esc(x.wiek)} · ${esc(x.ociepl)} · dach: ${esc(x.dach)} · ${esc(x.pusty)} · ochrona: ${esc(x.zabytek)}.</p></div>
       ${audyt('Ocena domu na miejscu przed podpisaniem umowy: dach i więźba, mury i wilgoć, drewno, ocieplenie, lista prac i ich kolejność.')}`;
   }
   if (a === 'kupno') {
@@ -1184,7 +1363,7 @@ function wynik() {
       <ul>
         <li><b>Teren i woda:</b> spadki terenu przy domu, rynny i rury spustowe — gdzie zrzucają wodę, czy grunt nie został podniesiony przy ścianach.</li>
         <li><b>Fundament i podmurówka:</b> pęknięcia — szczególnie ukośne przy narożnikach i przy rurach spustowych, poziome w murze fundamentu. Świeże zatarcia cementem często coś maskują.</li>
-        <li><b>Ściany:</b> ${['Drewniany (zrąb, bal)', 'Szachulec lub dom przysłupowy'].includes(x.konstr) ? 'podwaliny i narożniki — czy nie są spróchniałe, czy podwalina leży nad gruntem; wybrzuszenia i przechyły; pod szalunkiem czy tynkiem drewno trzeba odsłonić' : 'zawilgocenia i wykwity przy dole ścian, pęknięcia, odpadający tynk'}.</li>
+        <li><b>Ściany:</b> ${domDrewno(x) ? 'podwaliny i narożniki — czy nie są spróchniałe, czy podwalina leży nad gruntem; wybrzuszenia i przechyły; pod szalunkiem czy tynkiem drewno trzeba odsłonić' : 'zawilgocenia i wykwity przy dole ścian, pęknięcia, odpadający tynk'}.</li>
         <li><b>Stropy i podłogi:</b> ugięcia, uginanie się podłogi przy chodzeniu, małe otwory i mączka drzewna, zapach stęchlizny.</li>
         <li><b>Dach i więźba:</b> zacieki widoczne od strony poddasza, rozchodzące się krokwie, dorobione „na szybko” stężenia, ślady owadów; rodzaj pokrycia (eternit to dodatkowy koszt).</li>
         <li><b>Komin:</b> stan cegieł i tynku nad dachem i na poddaszu, czy więźba nie opiera się o komin.</li>
@@ -1203,7 +1382,7 @@ function wynik() {
       ${wkz(x) ? '<p><b>Ochrona konserwatorska:</b> sprawdź przed zakupem, czy dom lub obszar jest w rejestrze zabytków. To ogranicza zakres zmian, ale otwiera drogę do dotacji — zobacz ścieżkę o zabytkach.</p>' : ''}
         ${gez(x) ? GEZ_P : ''}
       <p>Element w złym stanie to zwykle zużycie powyżej połowy — oznacza remont kapitalny albo wymianę, i to on najmocniej podnosi koszt zakupu.</p>
-      <p>Twoje odpowiedzi: ${esc(x.konstr)} · ${esc(x.stan)} · zabytek: ${esc(x.zabytek)} · ${esc(x.cel)} · ${esc(x.obawa)}.</p></div>
+      <p>Twoje odpowiedzi: ${esc(domOpis(x))} · ${esc(x.stan)} · zabytek: ${esc(x.zabytek)} · ${esc(x.cel)} · ${esc(x.obawa)}.</p></div>
       ${audyt('Oględziny przed zakupem: ocena stanu każdego elementu od fundamentu po dach, opis usterek i szacunek zakresu remontu — zanim podpiszesz umowę.')}${skan}`;
   }
   if (a === 'zabytek') {
@@ -1253,7 +1432,7 @@ function wynik() {
       ${audyt('Ocena stanu okien i drzwi, zakres renowacji, przygotowanie do pozwolenia przy zabytku.')}`;
   }
   if (a === 'podloga') {
-    const drew = x.bud === 'Drewniany';
+    const drew = domDrewno(x);
     const legary = x.rodzaj === 'Deski na legarach' || x.plan === 'Odnowić deski na legarach';
     return `<div class="box main"><h3>Podłoga, która nie wypycha wilgoci w ściany</h3>
       <p><b>Najważniejsza zasada:</b> beton słabo przepuszcza parę wodną. Wilgoć z gruntu, która dotąd odparowywała przez podłogę, po wylaniu betonu idzie w ściany. Tak samo działają panele, linoleum i wykładziny położone szczelnie od ściany do ściany.</p>
@@ -1269,11 +1448,11 @@ function wynik() {
       ${x.plan === 'Płytki w kuchni lub łazience' ? '<p><b>Płytki:</b> zamiana desek na wylewkę z płytkami mocno dociąża strop — nośność musi przeliczyć konstruktor. Układ warstw pod płytki na drewnianej podłodze dobiera się indywidualnie, po oględzinach.</p>' : ''}
       ${x.plan === 'Ogrzewanie podłogowe' ? (drew ? '<p><b>Ogrzewanie podłogowe w domu drewnianym</b> nie jest dobrym rozwiązaniem — przegrzewa i wysusza drewno. Lepsze są piece i grzejniki na ścianach wewnętrznych (ścieżka „Ogrzewanie starego domu”).</p>' : '<p><b>Ogrzewanie podłogowe w domu murowanym</b> — tylko w posadzce wapiennej i tylko wtedy, gdy oryginalnej posadzki nie da się uratować. Rury układa się na warstwie wapna z keramzytem, a ogrzewanie uruchamia najwcześniej 3 tygodnie po wylewce. Układ do potwierdzenia po audycie.</p>') : ''}
       ${x.objaw === 'Deski uginają się, zapadają lub są zjedzone przez owady' ? '<p><b>Zniszczone deski:</b> zobacz też ścieżkę „Uszkodzone drewno” — trzeba sprawdzić legary i usunąć przyczynę, zanim położysz nowe deski.</p>' : ''}
-      <p>Twoje odpowiedzi: ${esc(x.bud)} · ${esc(x.rodzaj)} · ${esc(x.objaw)} · ${esc(x.plan)}.</p></div>
+      <p>Twoje odpowiedzi: ${esc(domOpis(x))} · ${esc(x.rodzaj)} · ${esc(x.objaw)} · ${esc(x.plan)}.</p></div>
       ${audyt('Ocena wilgoci pod podłogą i w ścianach, stanu legarów, dobór warstw i sprawdzenie nośności przed zmianą posadzki.')}`;
   }
   if (a === 'ogrzewanie') {
-    const drew = x.bud === 'Drewniany';
+    const drew = domDrewno(x);
     const T = {
       'Piec kaflowy': '<p><b>Piec kaflowy</b> warto zachować, nawet jeśli nie zamierzasz w nim palić — można go też zasilić współcześnie, np. grzałką elektryczną. Przed rozpaleniem po dłuższej przerwie potrzebny jest przegląd zduński i kominiarski, a w domu warto mieć czujnik tlenku węgla. Pal drewnem sezonowanym co najmniej rok i nie rozpalaj od razu dużego ognia w zimnym piecu — to niszczy kafle. Każdy piec musi mieć osobny kanał spalin.</p>',
       'Kominek lub piecyk': '<p><b>Kominek lub piecyk:</b> pieca ani paleniska nie stawia się wprost na drewnianej podłodze. Komin i rury nie mogą stykać się z drewnem, a przejście rury przez drewniany strop wymaga osłony z materiału niepalnego — nigdy pianki montażowej. Dobre urządzenie pobiera powietrze do spalania z zewnątrz; otwarte palenisko zasysa powietrze z pokoju. Odległości od drewna i podstawę pod kominek dobiera zdun dla konkretnego urządzenia. Sprawdź też lokalne przepisy o paleniu drewnem.</p>',
@@ -1285,7 +1464,7 @@ function wynik() {
     return `<div class="box main"><h3>Ogrzewanie dopasowane do starego domu</h3>
       ${T[x.co] || ''}
       <p>Najlepiej sprawdza się system mieszany: główne źródło ciepła i pomocnicze, które szybko ogrzeje część domu, gdy główne zawiedzie.</p>
-      <p>Twoje odpowiedzi: ${esc(x.bud)} · ${esc(x.co)}.</p></div>
+      <p>Twoje odpowiedzi: ${esc(domOpis(x))} · ${esc(x.co)}.</p></div>
       ${audyt(x.co === 'Pompa ciepła' ? 'Ocena strat ciepła domu i kolejności prac przed doborem pompy.' : 'Ocena domu i istniejących pieców, przewodów i grzejników; plan ogrzewania razem z remontem.')}`;
   }
   if (a === 'gosp') {
@@ -1305,9 +1484,9 @@ function wynik() {
       </ul>
       ${miesz ? `<p><b>Adaptacja na mieszkanie</b> to inna skala wymagań niż budynek gospodarczy. Ocieplenie od wewnątrz zmienia to, jak mur wysycha, więc ocieplenie i tynki gliniane planujemy dopiero po zbadaniu soli i osuszeniu ścian.</p>` : ''}
       ${x.plan === 'Nadal budynek dla zwierząt' ? `<p><b>Budynek nadal dla zwierząt:</b> ściany tradycyjnie bieli się wapnem — działa przeciw pleśni i grzybom, ale powłokę trzeba regularnie odnawiać. Tam, gdzie leży obornik, posadzkę robiono z kamieni polnych na warstwie ubitej tłustej gliny, a w stajni część tylną, gdzie działa mocz, z mocno wypalonej cegły lub kamienia, ze spadkiem — żeby wilgoć nie wsiąkała w grunt i mury.</p>` : ''}
-      ${x.mur === 'Glina (glinobitka, cegła suszona)' ? `<p><b>Ściany z gliny:</b> w dawnych oborach chronił je wysoki cokół z kamienia lub cegły. Jeśli go brak albo jest zniszczony, to pierwsze miejsce do sprawdzenia.</p>` : ''}
+      ${domMa(x, 'glina') ? `<p><b>Ściany z gliny:</b> w dawnych oborach chronił je wysoki cokół z kamienia lub cegły. Jeśli go brak albo jest zniszczony, to pierwsze miejsce do sprawdzenia.</p>` : ''}
       <p><b>Budynek w rejestrze zabytków?</b> Pobieranie próbek z muru to badanie inwazyjne i wymaga pozwolenia konserwatora.</p>
-      <p>Twoje odpowiedzi: ${esc(x.typ)} · ${esc(x.plan)} · ${esc(x.mur)} · ${esc(x.objaw)}.</p></div>
+      <p>Twoje odpowiedzi: ${esc(x.typ)} · ${esc(x.plan)} · ${esc(domOpis(x))} · ${esc(x.objaw)}.</p></div>
       ${audyt('Pobranie próbek i analiza zasolenia, pomiary wilgotności na kilku wysokościach, ocena cokołu i odwodnienia, plan odsalania i dobór tynku.')}${skan}`;
   }
   if (a === 'hurt') {
@@ -1318,6 +1497,43 @@ function wynik() {
   }
 }
 
+// v6.2 „Jaki to dom” — kolejność odpowiedzi przy podpowiedzi (typy z regionu na górze), wskazówki, pamięć raz na sprawę.
+function domRegion() {
+  const z = [];
+  (loc.pow || []).forEach(c => (POW_DOM[c] || []).forEach(k => { if (!z.includes(k)) z.push(k); }));
+  (REGION_DOM[loc.region] || []).forEach(k => { if (!z.includes(k)) z.push(k); });
+  return z.filter(k => DOM_ROZP_O.includes(DOM[k]));
+}
+function domRozpKolejnosc(o) { const reg = domRegion().map(k => DOM[k]); return reg.concat(sortO(o.filter(v => !reg.includes(v)))); }
+const DOM_WSK = '<ol><li><b>Grubość ściany</b> — w ościeżu okna albo drzwi widać, jak gruba jest ściana i z czego jest zrobiona.</li><li><b>Widoczne belki</b> — czy na ścianie widać drewno: belki leżące poziomo jedna na drugiej (zrąb) albo drewnianą kratę z wypełnionymi polami (szachulec).</li><li><b>Narożnik domu</b> — czy belki zachodzą na siebie na narożniku, czy narożnik jest murowany z cegły albo kamienia.</li></ol>';
+const DOM_ZDJECIE = 'Zdjęcie elewacji i narożnika domu bardzo pomoże rozpoznać konstrukcję — można je wysłać w odpowiedzi na naszą wiadomość po zgłoszeniu.';
+function domWskazowki(q) {
+  if (q.id === 'dom') return '<p class="note" data-dom-wsk>Jeśli trudno to ocenić, wystarczy wybrać „Nie wiem” — podpowiemy, jak rozpoznać dom.</p>';
+  if (q.id !== 'dom_rozp') return '';
+  const reg = domRegion();
+  return `<div class="box" data-dom-wsk>${reg.length ? `<p>W tej okolicy często spotyka się domy oznaczone niżej „często w tej okolicy” — są na górze listy.</p>` : ''}<p>Trzy rzeczy pomogą rozpoznać dom:</p>${DOM_WSK}<p>${DOM_ZDJECIE}</p></div>`;
+}
+// Zapamiętanie odpowiedzi „Jaki to dom” (raz na sprawę); zmiana typu domu kasuje pytania pochodne, które przestały obowiązywać.
+function domZapamietaj(id, v) {
+  delete st.ans['_pam_' + id];
+  if (id === 'dom') {
+    if (domPam.dom !== v) domPam = { dom: v };
+    ['dom_dol', 'dom_gora', 'dom_rozp'].forEach(k => { if (!domDalsze(v).some(q => q.id === k)) delete st.ans[k]; });
+  } else domPam[id] = v;
+  domPorzadkuj();
+}
+// Odpowiedzi zależne od typu domu (dziś: podłoże od wewnątrz) — usuwane, gdy nie ma ich na nowej liście (recenzja fe4fa22 P2-1).
+function domPorzadkuj() {
+  const a = st.area ? AREAS[st.area] : null; if (!a) return;
+  qsOf(a).forEach(q => { if (!DOM_IDS.includes(q.id) && st.ans[q.id] !== undefined && !q.o.includes(st.ans[q.id])) delete st.ans[q.id]; });
+}
+// Nowa sprawa (reset) albo zmiana krainy / kodu pocztowego — pamięć „Jaki to dom” od nowa (recenzja fe4fa22 P2-2).
+function domZapomnij() { domPam = {}; }
+// Przy pytaniu „Jaki to dom” (i pochodnych) bez odpowiedzi w tym obszarze — zaznaczenie z wcześniejszej odpowiedzi tej sprawy.
+function domZPamieci(q) {
+  if (!DOM_IDS.includes(q.id) || st.ans[q.id] !== undefined || domPam[q.id] === undefined || !q.o.includes(domPam[q.id])) return;
+  st.ans[q.id] = domPam[q.id]; st.ans['_pam_' + q.id] = true;
+}
 function formularz() {
   return `<form id="lead" novalidate>
     <label class="f">Imię i nazwisko<input type="text" id="f-imie" autocomplete="name" required></label>
@@ -1327,6 +1543,7 @@ function formularz() {
     ${st.area === 'hurt' ? `<label class="f">Nazwa firmy<input type="text" id="f-firma" autocomplete="organization" required></label><label class="f">NIP<input type="text" id="f-nip" inputmode="numeric" placeholder="10 cyfr" required></label>
     <p class="note full" style="margin:0">Ofertę hurtową przygotowujemy wyłącznie dla firm. Przed wyceną sprawdzamy dane firmy w publicznym rejestrze (CEIDG lub KRS).</p>
     <label class="f full">Lista pozycji<textarea id="f-opis" placeholder="Wklej listę z pliku: nazwa, wymiar lub grubość, ilość"></textarea></label>` : (st.area === 'ogloszenie' ? `<label class="f full">Link do ogłoszenia i co Cię niepokoi<textarea id="f-opis" placeholder="Wklej link do ogłoszenia; zdjęcia możesz wysłać mailem"></textarea></label>` : `<label class="f full">Coś jeszcze o budynku?<textarea id="f-opis" placeholder="np. rok budowy, co już zrobiono, zdjęcia wyślemy mailem"></textarea></label>`)}
+    ${st.area !== 'hurt' && st.ans.dom === DOM.niewiem ? `<p class="note full" data-dom-zdjecie style="margin:0">${DOM_ZDJECIE}</p>` : ''}
     ${KONFIG_Z_ADRESU ? `<p class="note full" data-konfig-wej style="margin:0">Ilości z konfiguratora: ${esc(KONFIG_OPIS[KONFIG_Z_ADRESU.system])}${KONFIG_Z_ADRESU.podloze ? ' (' + esc(KONFIG_PODLOZE_OPIS[KONFIG_Z_ADRESU.podloze]) + ')' : ''}, ${esc(String(KONFIG_Z_ADRESU.m2).replace('.', ','))} m², płyta ${esc(KONFIG_Z_ADRESU.grubosc)} mm</p>` : ''}
     ${rozObszarPasuje() ? `<p class="note full" data-roz-wej style="margin:0">Do zapytania dołączymy wariant wybrany na karcie rozwiązań do remontu (${esc(ROZ_WEJSCIE_OPIS[ROZ_WEJSCIE[ROZ_Z_ADRESU.id.charAt(4)]] || '')}).</p>` : ''}
     <label class="chk full"><input type="checkbox" id="f-zgoda" required> Proszę o kontakt w sprawie tego zapytania i zgadzam się na przetwarzanie danych w tym celu.</label>
@@ -1480,28 +1697,43 @@ document.addEventListener('change', e => {
 });
 
 // K23c.1 — klucz ekranu: obszar | krok | widok (opWidok: krainy, kod, problem, id pytania, wynik, kontakt, przyjęte).
-// Inny klucz niż przy poprzednim renderze = nowy ekran: render() zwraca true (wersja publiczna wysyła wtedy rodzicowi
-// {gora:true}) i przewija na górę nowego ekranu. Wybór odpowiedzi w tym samym pytaniu, wpis w polu, pole wyboru — ten sam
-// klucz: false, bez przewijania. Pierwszy render (wczytanie strony) liczy się jako nowy ekran, ale niczego nie przewija.
-let EKRAN_KLUCZ = null;
-const ekranKlucz = () => (st.area || '') + '|' + st.step + '|' + opWidok();
+// Inny klucz niż przy poprzednim renderze = nowy ekran (fokus na nagłówku). Pierwszy render (wczytanie strony) też.
+// v6.2 UI (plan wydań A Darka 24.11): po tapnięciu ekran ZOSTAJE W MIEJSCU — przy zmianie kroku zero scrollTo,
+// zero scrollIntoView i zero {gora:true} dla rodzica; przy przebudowie DOM (innerHTML) przywracamy pozycję przewijania
+// okna sprzed renderu (strona bez ramki; w ramce okno ramki ma wysokość treści — wysokość nadal idzie postMessage).
+// Wyjątki (przewinięcie do nagłówka nowego ekranu przez scrollIntoView — przewija też stronę rodzica ramki):
+//  - przycisk „Pokaż wynik” (data-pokaz-wynik, ostatnie pytanie) → ekran wyniku;
+//  - wejście w kontakt („Zapytaj o wycenę lub audyt”) i ekran „przyjęte” po wysłaniu (recenzja e0667a1, P1: ramka
+//    kurczy się z ~2700 do ~1900 px i formularz lądował nad oknem; DOMYŚLNE — do potwierdzenia przez Darka).
+// „Wstecz” z kontaktu do wyniku i każda inna zmiana kroku — bez przewijania.
+// Zwracane true = wersja publiczna wysyła rodzicowi {gora:true} (build_public.py: postWys(nowy)) — od v6.2 NIGDY:
+// skrypt rodzica przewinąłby do góry ramki i cofnął przewinięcie do wyniku. render() zwraca więc zawsze false.
+let EKRAN_KLUCZ = null, POKAZ_WYNIK = false;
+// v6.3: + otwarta grupa menu — tapnięcie kafla grupy to nowy ekran (bez przewijania), wybór obszaru z grupy też.
+const ekranKlucz = () => (st.area || '') + '|' + st.step + '|' + opWidok() + '|' + (st.area ? '' : grupa || '');
 function render() { const nowy = renderInner(); postWys(nowy); return nowy; }
 function renderInner() {
+  const y0 = pozycja();
   renderWidok(); renderOpinia();
   const k = ekranKlucz(), nowy = k !== EKRAN_KLUCZ, pierwszy = EKRAN_KLUCZ === null;
   EKRAN_KLUCZ = k;
-  if (nowy && !pierwszy) naGoreEkranu();
-  return nowy;
+  const w = opWidok(), doNaglowka = nowy && !pierwszy && ((POKAZ_WYNIK && w === 'wynik') || w === 'kontakt' || w === 'przyjete'); POKAZ_WYNIK = false;
+  if (doNaglowka) przewinDoNaglowka(w); else if (!pierwszy) przywrocPozycje(y0);
+  if (nowy && !pierwszy) fokusNaglowka();
+  return false;
 }
-// W ramce: góra ramki (window.scrollTo(0,0) — ramka ma zwykle wysokość treści, więc to tylko zabezpieczenie; stronę rodzica
-// przewija skrypt rodzica po {gora:true}). Bez ramki: jeśli początek strony uciekł nad okno, wracamy do niego.
-// Fokus na nagłówku nowego ekranu (tabindex -1, preventScroll — bez przewijania rodzica): czytnik ekranu zaczyna od pytania.
-function naGoreEkranu() {
-  try {
-    if (window.parent !== window) { if ((window.scrollY || 0) > 0) window.scrollTo(0, 0); }
-    else { const m = document.querySelector('main'), t = m ? m.getBoundingClientRect().top : 0;
-      if (t < 0) window.scrollTo(0, Math.max(0, t + (window.scrollY || 0))); }
-  } catch (er) {}
+function pozycja() { try { return window.scrollY || 0; } catch (er) { return 0; } }
+function przywrocPozycje(y0) { try { if (pozycja() !== y0) window.scrollTo(0, y0); } catch (er) {} }
+// W ramce rodzic zmienia wysokość ramki dopiero po komunikacie z nową wysokością — wtedy okno ramki dostaje „resize”
+// i przewijamy jeszcze raz (jednorazowo, najwyżej przez 1,5 s), żeby nagłówek został u góry okna rodzica.
+function przewinDoNaglowka(widok) {
+  const idz = () => { try { const h2 = document.querySelector('#view h2'); if (h2 && typeof h2.scrollIntoView === 'function') h2.scrollIntoView({ block: 'start' }); } catch (er) {} };
+  idz();
+  try { if (window.parent !== window) { const raz = () => { window.removeEventListener('resize', raz); if (opWidok() === widok) idz(); };
+    window.addEventListener('resize', raz); setTimeout(() => window.removeEventListener('resize', raz), 1500); } } catch (er) {}
+}
+// Fokus na nagłówku nowego ekranu (tabindex -1, preventScroll — bez przewijania okna i rodzica): czytnik ekranu zaczyna od pytania.
+function fokusNaglowka() {
   try { const h2 = document.querySelector('#view h2'); if (h2) { h2.setAttribute('tabindex', '-1'); h2.focus({ preventScroll: true }); } } catch (er) {}
 }
 // K23c.2 — pytanie jednokrotnego wyboru bez pól dodatkowych (bez chk i bez num): po tapnięciu ok. AUTO_MS podświetlenia,
@@ -1511,9 +1743,12 @@ function naGoreEkranu() {
 // dwukliku nie wybiera niczego w następnym pytaniu („Wstecz” i inne przyciski działają od razu).
 // Pytania z polem (chk, m²): bez automatu i bez żadnego przewijania (decyzja Darka 24.11 — scrollIntoView ruszałby stronę
 // rodzica); zamiast tego drugi przycisk „Dalej” (data-dalej-przy, ta sama akcja) tuż pod wybraną odpowiedzią.
+// v6.2 UI: ostatnie pytanie obszaru też bez automatu — przycisk „Pokaż wynik” (data-pokaz-wynik) przechodzi do wyniku
+// i jako jedyny przewija (do nagłówka wyniku). Ostatnie = po zapisaniu odpowiedzi nie ma dalszego pytania.
 const AUTO_MS = 250, AUTO_BLOKADA = 450;
 const AUTO = { timer: null, blokadaDo: 0 };
-const autoDalej = q => !!q && !q.chk && !q.num;
+const ostatniePytanie = () => !!st.area && st.step === qsOf(AREAS[st.area]).length;
+const autoDalej = q => !!q && !q.chk && !q.num && !ostatniePytanie();
 function autoStop() { if (AUTO.timer) { clearTimeout(AUTO.timer); AUTO.timer = null; } }
 function dalej() { autoStop(); st.step++; render(); }
 function poWyborze(q, odp) {
@@ -1523,14 +1758,31 @@ function poWyborze(q, odp) {
   AUTO.timer = setTimeout(() => { AUTO.timer = null;
     if (!st.sent && ekranKlucz() === k && st.ans[q.id] === odp) { AUTO.blokadaDo = Date.now() + AUTO_BLOKADA; dalej(); } }, AUTO_MS);
 }
+// v6.3 — kafel grupy: <details> (piktogram + nazwa + jedna linia opisu); w środku obszary grupy w stałej kolejności, chipy miejsc
+// ocieplenia i wejścia skrótów. Otwarta jest najwyżej jedna grupa (zmienna grupa); tapnięcie kafla = nowy ekran (klucz ekranu
+// zawiera grupę). Przyciski obszarów są w DOM także w grupie zwiniętej — atrybut data-area jak dotąd (głębokie testy i kontrakt e2e).
+function menuWejscie(id, kl) { const w = WEJSCIA[id]; return `<button class="${kl}" type="button" data-wejscie="${id}">${w.s ? `<b>${esc(w.t)}</b><span>${esc(w.s)}</span>` : esc(w.t)}</button>`; }
+function menuGrupa(g) {
+  const G = GRUPY[g], otw = grupa === g;
+  const obszar = k => `<button class="opt" type="button" data-area="${k}"><b>${AREAS[k].name}</b><span>${AREAS[k].short}</span></button>`
+    + (G.chipy && G.chipy[k] ? `<div class="chipy" role="group" aria-label="${esc(AREAS[k].name)} — od razu wybrane miejsce">${G.chipy[k].map(id => menuWejscie(id, 'chip')).join('')}</div>` : '');
+  return `<details class="gr" data-grupa="${g}"${otw ? ' open' : ''}><summary data-grupa="${g}"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true">${IKONY[G.ik]}</svg><span><b>${G.name}</b><span>${G.short}</span></span></summary>
+    <div class="gr-in"><div class="opts">${(G.przed || []).map(id => menuWejscie(id, 'opt')).join('')}${G.o.map(obszar).join('')}</div>
+    ${G.w ? `<p class="gr-w">${esc(G.w.t)}</p><div class="chipy">${G.w.o.map(id => menuWejscie(id, 'chip')).join('')}</div>` : ''}</div></details>`;
+}
 function renderWidok() {
   const a = st.area ? AREAS[st.area] : null;
   const total = a ? qsOf(a).length + 2 : 1;
   const labels = ['Region', 'Kod pocztowy', 'Problem'].concat(a ? qsOf(a).map((q, i) => 'Pytanie ' + (i + 1)).concat(['Rozwiązanie', 'Kontakt']) : []);
   const cur = !loc.region ? 0 : !loc.kodDone ? 1 : 2 + st.step;
   $('#steps').innerHTML = labels.map((l, i) => `<li class="${i === cur ? 'on' : ''}">${l}</li>`).join('');
-  Object.values(AREAS).forEach(o => document.getElementById(o.hl).setAttribute('opacity', a && o === a ? '.9' : '0'));
-  $('#legend').innerHTML = a ? a.legend : 'Wybierz problem — zaznaczymy jego miejsce w domu.';
+  // v6.2: pytanie o dół / górę domu mieszanego podświetla parter albo piętro zamiast elementu obszaru.
+  const qAkt = a && st.step >= 1 && st.step <= qsOf(a).length ? qsOf(a)[st.step - 1] : null, hlQ = qAkt && qAkt.hl ? qAkt.hl : '';
+  // v6.3: w menu otwarta grupa podświetla swoje elementy domu (GRUPY.hl) i ma własną legendę.
+  const G = !a && grupa && loc.kodDone && !st.sent ? GRUPY[grupa] : null;
+  Object.values(AREAS).forEach(o => document.getElementById(o.hl).setAttribute('opacity', (a && o === a && !hlQ) || (G && G.hl.includes(o.hl)) ? '.9' : '0'));
+  ['a-parter', 'a-pietro'].forEach(id => { const e = document.getElementById(id); if (e) e.setAttribute('opacity', id === hlQ || (G && G.hl.includes(id)) ? '.6' : '0'); });
+  $('#legend').innerHTML = hlQ ? `<b>Zaznaczono: ${esc(qAkt.hlOpis)}.</b> ${a.legend}` : a ? a.legend : G ? G.legend : 'Wybierz problem — zaznaczymy jego miejsce w domu.';
   const v = $('#view');
   if (st.sent) {
     v.innerHTML = `<h2>Dziękujemy — zapytanie przyjęte</h2><p class="lead">Odpiszemy w ciągu jednego dnia roboczego.</p>${st.sent.numer ? `<p>Numer zgłoszenia: <b>${esc(st.sent.numer)}</b></p>` : ''}
@@ -1556,19 +1808,21 @@ function renderWidok() {
     return;
   }
   if (!a) {
-    v.innerHTML = `<h2>Z czym się mierzysz?</h2><p class="lead">Wybierz najbliższy problem. Każda ścieżka to kilka krótkich pytań.</p>
-      <div class="opts">${Object.entries(AREAS).sort((a, b) => (a[0] === 'hurt') - (b[0] === 'hurt') || a[1].name.localeCompare(b[1].name, 'pl')).map(([k, o]) => `<button class="opt" type="button" data-area="${k}"><b>${o.name}</b><span>${o.short}</span></button>`).join('')}</div>
+    v.innerHTML = `<h2>Na jakim etapie jest remont?</h2><p class="lead">Wybierz etap, a w nim sprawę najbliższą temu, co widać w domu. Każda ścieżka to kilka krótkich pytań.</p>
+      <div class="grupy${grupa ? ' otwarta' : ''}">${Object.keys(GRUPY).map(menuGrupa).join('')}</div>
+      <div class="menu-linki"><button class="lnk" type="button" data-grupa-start="kupuje">Nie wiem, od czego zacząć</button><button class="lnk" type="button" data-area="hurt">Jestem firmą — szukam dostawcy materiałów</button></div>
       <div class="nav"><button class="btn" type="button" data-act="kodback">Wstecz</button></div>`;
     return;
   }
   const qi = st.step - 1;
   if (qi < qsOf(a).length) {
-    const q = qsOf(a)[qi];
-    v.innerHTML = `<h2>${q.t}</h2><p class="lead">${a.name}</p>
-      <div class="opts">${sortO(q.o).map(o => `<button class="opt" type="button" data-ans="${esc(o)}" aria-pressed="${st.ans[q.id] === o}"><b>${esc(o)}</b></button>${(q.chk || q.num) && st.ans[q.id] === o ? `<div class="dalej-przy" style="grid-column:1/-1"><button class="btn go" type="button" data-act="next" data-dalej-przy>Dalej</button></div>` : ''}`).join('')}</div>
+    const q = qsOf(a)[qi]; domZPamieci(q); const ost = qi === qsOf(a).length - 1;   // v6.2: „Pokaż wynik” zamiast „Dalej”
+    const regTyp = q.region ? domRegion().map(k => DOM[k]) : [];
+    v.innerHTML = `<h2>${q.t}</h2><p class="lead">${a.name}</p>${domWskazowki(q)}${st.ans['_pam_' + q.id] ? '<p class="note" data-dom-pam>Zaznaczone według wcześniejszej odpowiedzi w tej sprawie — można zmienić.</p>' : ''}
+      <div class="opts">${(q.region ? domRozpKolejnosc(q.o) : sortO(q.o)).map(o => `<button class="opt" type="button" data-ans="${esc(o)}" aria-pressed="${st.ans[q.id] === o}"><b>${esc(o)}</b>${regTyp.includes(o) ? '<span>często w tej okolicy</span>' : ''}</button>${(q.chk || q.num) && st.ans[q.id] === o ? `<div class="dalej-przy" style="grid-column:1/-1"><button class="btn go" type="button" data-act="next" data-dalej-przy${ost ? ' data-pokaz-wynik' : ''}>${ost ? 'Pokaż wynik' : 'Dalej'}</button></div>` : ''}`).join('')}</div>
       ${q.chk ? `<label class="f" style="flex-direction:row;align-items:center;gap:10px;margin-top:12px"><input type="checkbox" id="chk-${q.chk.id}" data-chk="${q.chk.id}" ${st.ans[q.chk.id] ? 'checked' : ''} style="width:20px;height:20px"> ${esc(q.chk.label)}</label>` : ''}
       ${q.num ? `<label class="f" style="margin-top:12px">${esc(q.num.label)}<input type="number" min="1" max="10000" step="0.5" inputmode="decimal" id="num-${q.num.id}" data-num="${q.num.id}" value="${st.ans[q.num.id] || ''}"></label>` : ''}
-      <div class="nav"><button class="btn" type="button" data-act="back">Wstecz</button><button class="btn go" type="button" data-act="next" ${st.ans[q.id] ? '' : 'disabled'}>Dalej</button></div>`;
+      <div class="nav"><button class="btn" type="button" data-act="back">Wstecz</button><button class="btn go" type="button" data-act="next"${ost ? ' data-pokaz-wynik' : ''} ${st.ans[q.id] ? '' : 'disabled'}>${ost ? 'Pokaż wynik' : 'Dalej'}</button></div>`;
     return;
   }
   if (st.step === qsOf(a).length + 1) {
@@ -1579,6 +1833,12 @@ function renderWidok() {
   v.innerHTML = `<h2>Jak się z Tobą skontaktować?</h2><p class="lead">Dostaniesz odpowiedź od Darka z REDUKS — z ceną dla Ciebie albo propozycją terminu oględzin.</p>${formularz()}`;
 }
 
+// v6.3 — głęboki link ?obszar=…: jednorazowo, po pierwszym przejściu przez kod pocztowy; grupa = grupa obszaru (powrót „Wstecz”).
+function poKodzie() {
+  if (!OBSZAR_Z_ADRESU || obszarZAdresuUzyty || st.area) return;
+  obszarZAdresuUzyty = true; grupa = GRUPA_OBSZARU[OBSZAR_Z_ADRESU] || null;
+  st = { area: OBSZAR_Z_ADRESU, step: 1, ans: {}, sent: null };
+}
 document.addEventListener('change', e => { const c = e.target.closest('[data-chk]'); if (c) st.ans[c.dataset.chk] = c.checked;
   const n = e.target.closest('[data-num]'); if (n) { const v = parseFloat(String(n.value).replace(',', '.'));
     // v5.2: przedział ustawiony przez pole liczby oznaczamy flagą _metryZPola — tylko taki usuwamy,
@@ -1593,31 +1853,36 @@ document.addEventListener('change', e => { const c = e.target.closest('[data-chk
     }
     render(); } });
 document.addEventListener('click', e => {
+  // v6.3: kafel grupy (summary) — bez natywnego zwijania; jedna otwarta grupa, ponowne tapnięcie zwija.
+  const sm = e.target.closest('summary[data-grupa]');
+  if (sm) { e.preventDefault(); autoStop(); grupa = grupa === sm.dataset.grupa ? null : sm.dataset.grupa; render(); return; }
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.op) { autoStop(); const o = b.dataset.op;   // K23c (recenzja P2-a): opinia w 250 ms nie przenosi ekranu
     if (o === 'otworz') { op.otwarty = true; op.info = ''; op.blad = ''; op.kontekst = opKontekst(); renderOpinia(); const r = document.querySelector('input[name="op-rodzaj"]'); if (r) try { r.focus(); } catch (er) {} }
     if (o === 'zamknij') { const kc = { kciuki: op.kciuki, kciukInfo: op.kciukInfo, widok: op.widok }; op = Object.assign(opNowy(), kc); renderOpinia(); }
     if (o === 'kciuk_gora' || o === 'kciuk_dol') opKciuk(o);
     return; }
-  if (b.dataset.fixregion) { loc.region = b.dataset.fixregion; loc.spr = null; loc.kodDone = true; render(); return; }
-  if (b.dataset.region) { loc.region = b.dataset.region; render(); return; }
-  if (b.dataset.area) { st = { area: b.dataset.area, step: 1, ans: {}, sent: null }; render(); return; }
+  if (b.dataset.fixregion) { domZapomnij(); loc.region = b.dataset.fixregion; loc.spr = null; loc.kodDone = true; poKodzie(); render(); return; }
+  if (b.dataset.region) { domZapomnij(); loc.region = b.dataset.region; render(); return; }
+  if (b.dataset.area) { if (b.dataset.area === 'hurt') grupa = null; st = { area: b.dataset.area, step: 1, ans: {}, sent: null }; render(); return; }
+  if (b.dataset.wejscie) { const w = WEJSCIA[b.dataset.wejscie]; st = { area: w.obszar, step: w.krok, ans: Object.assign({}, w.ans), sent: null }; render(); return; }
+  if (b.dataset.grupaStart) { autoStop(); grupa = b.dataset.grupaStart; render(); return; }
   if ((b.dataset.ans || b.dataset.act === 'next') && Date.now() < AUTO.blokadaDo) return;   // K23c.2: drugie tapnięcie po automacie
-  if (b.dataset.ans) { const q = qsOf(AREAS[st.area])[st.step - 1]; if ((q.id === 'miejsce' || (st.area === 'tynk' && q.id === 'cel')) && st.ans[q.id] !== b.dataset.ans) st.ans = st.ans.stare ? { stare: true } : {}; st.ans[q.id] = b.dataset.ans; if (q.id === 'metry') delete st.ans._metryZPola; render(); poWyborze(q, b.dataset.ans); return; }
+  if (b.dataset.ans) { const q = qsOf(AREAS[st.area])[st.step - 1]; if ((q.id === 'miejsce' || (st.area === 'tynk' && q.id === 'cel')) && st.ans[q.id] !== b.dataset.ans) st.ans = st.ans.stare ? { stare: true } : {}; st.ans[q.id] = b.dataset.ans; if (DOM_IDS.includes(q.id)) domZapamietaj(q.id, b.dataset.ans); if (q.id === 'metry') delete st.ans._metryZPola; render(); poWyborze(q, b.dataset.ans); return; }
   autoStop();
   const act = b.dataset.act;
-  if (act === 'next') dalej();
+  if (act === 'next') { POKAZ_WYNIK = 'pokazWynik' in b.dataset; dalej(); }
   if (act === 'back') { st.step--; if (st.step <= 0) st = { area: null, step: 0, ans: {}, sent: null }; render(); }
-  if (act === 'reset') { st = { area: null, step: 0, ans: {}, sent: null }; render(); }
+  if (act === 'reset') { st = { area: null, step: 0, ans: {}, sent: null }; grupa = null; domZapomnij(); render(); }
   if (act === 'locback') { loc.region = null; loc.spr = null; render(); }
   if (act === 'kodback') { loc.kodDone = false; render(); }
-  if (act === 'kodskip') { loc.kod = null; loc.pow = []; loc.spr = null; loc.kodDone = true; render(); }
+  if (act === 'kodskip') { domZapomnij(); loc.kod = null; loc.pow = []; loc.spr = null; loc.kodDone = true; poKodzie(); render(); }
   if (act === 'kodok') { const k = ($('#f-kod').value || '').trim().replace(/^(\d{2})(\d{3})$/, '$1-$2'); if (!/^\d{2}-\d{3}$/.test(k)) { $('#kod-err').hidden = false; return; }
-    loc.kod = k; loc.pow = kodPowiaty(k); loc.spr = null;
+    domZapomnij(); loc.kod = k; loc.pow = kodPowiaty(k); loc.spr = null;
     const set = KRAINA_POW[loc.region];
     if (set && loc.pow.length && !loc.pow.some(c => set.includes(c))) { loc.spr = Object.keys(KRAINA_POW).filter(r => loc.pow.some(c => KRAINA_POW[r].includes(c))).sort((x, y) => x.localeCompare(y, 'pl')); render(); return; }
-    loc.kodDone = true; render(); }
-  if (act === 'kodkeep') { loc.spr = null; loc.kodDone = true; render(); }
+    loc.kodDone = true; poKodzie(); render(); }
+  if (act === 'kodkeep') { loc.spr = null; loc.kodDone = true; poKodzie(); render(); }
   if (act === 'kodfix') { loc.spr = null; render(); }
   if (act === 'copy') { try { navigator.clipboard.writeText($('#rec').textContent).then(() => b.textContent = 'Skopiowano', () => b.textContent = 'Kopiowanie zablokowane'); } catch (er) { b.textContent = 'Kopiowanie zablokowane'; } }
 });
@@ -1679,7 +1944,7 @@ document.addEventListener('submit', e => {
 
 // Ramka (GitHub Pages w ShopGold/GTM, 23.11): wysyłamy wysokość TREŚCI — dół ostatniego elementu body (bez skryptów)
 // plus margines dolny równy górnemu. NIE scrollHeight: ten nigdy nie spada poniżej wysokości ramki, więc ramka tylko by rosła.
-// Wiadomość niesie wyłącznie liczbę (i znacznik gora wyłącznie przy zmianie ekranu, K23c.1). Poza ramką nic nie wysyłamy.
+// Wiadomość niesie wyłącznie liczbę (znacznik gora tylko, gdy render() zwróci true — od v6.2 nigdy, ekran zostaje w miejscu). Poza ramką nic nie wysyłamy.
 function wysTresci() {
   const el = Array.prototype.filter.call(document.body.children, e => !/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(e.tagName));
   if (!el.length) return 0;
