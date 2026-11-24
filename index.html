@@ -46,11 +46,14 @@ h1,h2,h3{font-family:"Barlow Semi Condensed",system-ui,sans-serif;line-height:1.
 .opt span{color:var(--mut);font-size:15px}
 .opt:hover{border-color:var(--och)}
 .opt:focus-visible,.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+#view h2:focus{outline:none}
+.dalej-przy{margin:2px 0 6px}
 .opt[aria-pressed=true]{border-color:var(--och);background:var(--ochs)}
 .nav{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
 .btn{font:600 16px "Source Sans 3",sans-serif;min-height:44px;padding:10px 18px;border-radius:10px;border:1.5px solid var(--line);background:var(--pan);color:var(--ink);cursor:pointer}
 .btn.go{background:var(--sky);border-color:var(--sky);color:var(--onsky)}
 .btn:disabled{opacity:.45;cursor:default}
+a.btn{display:inline-block;text-decoration:none;line-height:24px}
 .res{display:grid;gap:12px}
 .box{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg)}
 .box h3{font-size:21px;margin-bottom:4px}
@@ -141,7 +144,7 @@ pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-rad
 <script>
 {
 // Wersja Przewodnika — zapisywana w każdym rekordzie zgłoszenia (WWD pkt 21: wynik wie, wg jakiej wersji reguł powstał).
-const PRZEWODNIK_WERSJA = 'v5.9-2026-11-22';
+const PRZEWODNIK_WERSJA = 'v6.1-2026-11-23';
 // Link do karty „do rozmowy z urzędem” (MC_USTAWIENIA → KARTA_URZAD_URL; wstawia build_public.py). Puste = link ukryty.
 const KARTA_URZAD_URL = "https://bonzeeq.github.io/reduks-poradnik/karta-koncepcji.pdf";
 // Rozwiązania do remontu: adres strony z kartami wariantów, obok Przewodnika (4. argument build_public.py). Puste = linki ukryte.
@@ -159,11 +162,32 @@ const ROZ_Z_ADRESU = (() => {
   if (SPRAWA_Z_ADRESU) r.sprawa = SPRAWA_Z_ADRESU;
   return r;
 })();
+// K23.2 / K23.4 — powrót z konfiguratora („Poproś o wycenę”): ?konfig=<system>&m2=…&grubosc=…[&podloze=…]&sprawa=…
+// system ∈ {klejenie, ruszt, przykrecanie}, m² 1–10000 (przecinek dozwolony, zaokrąglenie do 0,5), grubość 14|22 — wszystkie trzy
+// poprawne, inaczej parametry ignorowane. podloze ∈ {osb, deskowanie}: przy przykrecanie wymagane (brak/złe → cały powrót ignorowany),
+// przy innym systemie sam parametr ignorowany. Do zgłoszenia trafia wyłącznie { system, m2, grubosc, podloze? } — ilości liczy serwer
+// (K23.3). Numer sprawy — wspólny SPRAWA_Z_ADRESU (ten sam wzorzec ZGL); przy poprawnym powrocie także pole `sprawa` rekordu (K23.4).
+const KONFIG_SYSTEMY = ['klejenie', 'ruszt', 'przykrecanie'];
+const KONFIG_PODLOZA = ['osb', 'deskowanie'];
+const KONFIG_OPIS = { klejenie: 'płyty klejone do muru', ruszt: 'płyty na ruszcie', przykrecanie: 'płyty przykręcane do podłoża' };
+const KONFIG_PODLOZE_OPIS = { osb: 'płyta OSB', deskowanie: 'deskowanie' };
+function konfigM2(v) {
+  const s = String(v == null ? '' : v).trim().replace(',', '.');
+  if (!/^\d{1,5}(\.\d+)?$/.test(s)) return null;
+  const m = parseFloat(s); return m >= 1 && m <= 10000 ? Math.round(m * 2) / 2 : null;
+}
+const KONFIG_Z_ADRESU = (() => {
+  const sys = ADRES.get('konfig') || '', m2 = konfigM2(ADRES.get('m2')), gr = ADRES.get('grubosc') || '';
+  if (!KONFIG_SYSTEMY.includes(sys) || m2 === null || !/^(14|22)$/.test(gr)) return null;
+  if (sys !== 'przykrecanie') return { system: sys, m2: m2, grubosc: +gr };
+  const pd = ADRES.get('podloze') || '';
+  return KONFIG_PODLOZA.includes(pd) ? { system: sys, m2: m2, grubosc: +gr, podloze: pd } : null;
+})();
 // Wejście wariantu wg litery w id (A–B mur od środka, C–D elewacja, E–F szachulec od środka, G podłoga,
 // H szachulec od zewnątrz — wypełnienie pól, K22.4).
 const ROZ_WEJSCIE = { A: 'mur_wew', B: 'mur_wew', C: 'elewacja', D: 'elewacja', E: 'szachulec', F: 'szachulec', G: 'podloga', H: 'szachulec_zew' };
 // Wersja silnika oceny (ocenaAudytuDane, pilnoscDane, brakiDane) — zmieniaj przy każdej zmianie reguł oceny.
-const OCENA_WERSJA = 'ocena-2026-11-22b';
+const OCENA_WERSJA = 'ocena-2026-11-24';
 const S = { kart: '', k601: '', k603: '', nh: '' };
 
 const METRY = { id: 'metry', t: 'Ile mniej więcej metrów?', o: ['Do 30 m²', '30–100 m²', 'Ponad 100 m²', 'Nie wiem'], num: { id: 'm2', label: 'Jeśli znasz dokładną powierzchnię, wpisz ją (m²) — policzymy materiał dokładniej' } };
@@ -172,11 +196,13 @@ const STARE = { id: 'stare', label: 'W domu są stare lub nietypowe elementy (np
 // v5.3 (ZADANIE 4): jedno pytanie o status ochrony dla wszystkich obszarów (poza hurtem) — koncepcja pkt 26.
 // v5.5: pomnik historii (f), park kulturowy (g) i strefa w planie miejscowym (h) jako osobne odpowiedzi.
 // Dawna odpowiedź łączona (kod c) nie jest już pokazywana — zostaje tylko w ZAB_KOD dla starych rekordów i stanu.
+// v6.1 (K23c.4, język neutralny płciowo): kod d = „Sprawdzone — nie znaleziono” (do v6.0: „Sprawdzałem, nie znalazłem” — stary
+// tekst w zapisanych zgłoszeniach i opiniach tłumaczy serwer: PZ_ODP_STARE w PRZEWODNIK_ZGLOSZENIA.js, OP.ODP_STARE w OPINIE.js).
 const ZAB_KOD = {
   'Tak — wpis do rejestru (budynek lub obszar)': 'a', 'Tak — gminna ewidencja zabytków': 'b',
   'Tak — pomnik historii': 'f', 'Tak — park kulturowy': 'g',
   'Tak — strefa ochrony w miejscowym planie zagospodarowania przestrzennego': 'h',
-  'Sprawdzałem, nie znalazłem': 'd', 'Nie wiem': 'e',
+  'Sprawdzone — nie znaleziono': 'd', 'Nie wiem': 'e',
   'Leży w strefie ochrony z planu miejscowego albo w parku kulturowym': 'c'
 };
 const ZAB_O = Object.keys(ZAB_KOD).filter(o => ZAB_KOD[o] !== 'c');
@@ -260,7 +286,7 @@ const AREAS = {
     legend: '<b>Przed zakupem</b> dom ogląda się od fundamentu w górę, aż po dach.',
     qs: [
       { id: 'konstr', t: 'Z czego jest dom?', o: ['Drewniany (zrąb, bal)', 'Szachulec lub dom przysłupowy', 'Murowany z cegły', 'Murowany z kamienia', 'Mieszany', 'Nie wiem'] },
-      { id: 'stan', t: 'Jak wygląda na pierwszy rzut oka?', o: ['Zamieszkany, zadbany', 'Niezamieszkany od kilku lat', 'Ruina lub pustostan od dawna', 'Nie widziałem go jeszcze na żywo'] },
+      { id: 'stan', t: 'Jak wygląda na pierwszy rzut oka?', o: ['Zamieszkany, zadbany', 'Niezamieszkany od kilku lat', 'Ruina lub pustostan od dawna', 'Jeszcze nieobejrzany na żywo'] },
       { id: 'zabytek', t: 'Czy budynek jest objęty ochroną zabytków?', o: ZAB_O },
       { id: 'cel', t: 'Co planujesz?', o: ['Zamieszkać na stałe', 'Dom letni lub weekendowy', 'Działalność: agroturystyka, pracownia', 'Jeszcze nie wiem'] },
       { id: 'obawa', t: 'Co Cię najbardziej niepokoi?', o: ['Wilgoć w piwnicy lub na dole ścian', 'Zapach chemiczny, podejrzenie starego impregnatu drewna', 'Dom ocieplony styropianem', 'Pęknięcia murów', 'Eternit albo nieznane włókniste izolacje', 'Radon', 'Nic konkretnego'] }
@@ -507,7 +533,7 @@ const STATUS_TXT = {
 const BEZP_TXT = {
   konstrukcja: ['BEZPIECZEŃSTWO — konstrukcja', 'To dotyczy konstrukcji budynku. Zanim cokolwiek zmienisz, dociążysz albo usuniesz, potrzebna jest ocena konstruktora — inżyniera budownictwa z uprawnieniami. Ten przewodnik nie zastępuje tej oceny.'],
   piec: ['BEZPIECZEŃSTWO — piec i komin', 'Palenisko, wkład i przewód kominowy naprawia zdun, a stan przewodu ocenia kominiarz. Nie używaj uszkodzonego pieca ani komina — grozi to pożarem i zatruciem tlenkiem węgla.'],
-  azbest: ['NAJPIERW ZBADAJ — azbest', 'Materiał może zawierać azbest. Nie tnij go, nie rozbijaj i nie usuwaj sam. O tym, czy jest azbest, rozstrzyga badanie próbki w laboratorium; usunięcie wykonuje uprawniona firma.'],
+  azbest: ['NAJPIERW ZBADAJ — azbest', 'Materiał może zawierać azbest. Nie tnij go, nie rozbijaj i nie usuwaj samodzielnie. O tym, czy jest azbest, rozstrzyga badanie próbki w laboratorium; usunięcie wykonuje uprawniona firma.'],
   radon: ['NAJPIERW ZBADAJ — radon', 'Wiarygodną ocenę radonu daje pomiar — zapytaj laboratorium pomiarowe, jak go przeprowadzić. Decyzje o izolacji i wentylacji podejmuj po wyniku.'],
   powloki: ['NAJPIERW ZBADAJ — stare powłoki', 'Zanim zaczniesz szlifować albo opalać stare farby, sprawdź, z czego są. Pył i opary ze starych powłok mogą być szkodliwe — w razie wątpliwości oddaj próbkę do badania.']
 };
@@ -619,6 +645,32 @@ function rozBox() {
   return `<div class="box" data-rozwiazanie><h3>Przykładowy układ warstw</h3><p>Zobacz kartę rozwiązania: <a href="${esc(rozAdres(r.p))}">${esc(r.t)}</a> — przekrój, materiały według warstw, warunki i przeciwwskazania.</p>
     <p class="note" style="margin:6px 0 0">Karta jest poglądowa — nie oznacza, że ten układ pasuje do Twojego budynku.</p></div>`;
 }
+// K23.1 — przycisk „Policz materiał” WYŁĄCZNIE w wierszach 1–2: ocieplenie · „Ściana od wewnątrz” · podłoże z KLEJ_OK → klejenie;
+// podłoże z WKRET_OK (płyta drewnopochodna, deskowanie) → przykrecanie z podłożem konfiguratora osb / deskowanie (K23.4).
+// Każdy inny obszar i ścieżka (trudne podłoża, dach/strop, tynk) → brak przycisku (A2, nie zgadujemy).
+const KONFIG_PODLOZE = { 'Płyta drewnopochodna': 'osb', 'Deskowanie': 'deskowanie' };
+function konfigSystem(obszar, odp) {
+  const a = arguments.length ? obszar : st.area, x = arguments.length ? (odp || {}) : st.ans;
+  if (a !== 'ocieplenie' || x.miejsce !== 'Ściana od wewnątrz') return '';
+  return KLEJ_OK.includes(x.podloze) ? 'klejenie' : WKRET_OK.includes(x.podloze) ? 'przykrecanie' : '';
+}
+// K23.2 — adres konfiguratora = ENDPOINT builda (…/exec). Źródło bez ENDPOINT albo zaślepka (__…) → brak przycisku.
+function konfigBaza() {
+  let e = ''; try { e = typeof ENDPOINT === 'string' ? ENDPOINT : ''; } catch (er) { e = ''; }
+  return e && e.indexOf('__') !== 0 && /^https:\/\//.test(e) ? e : '';
+}
+function konfigAdres() {
+  const baza = konfigBaza(), sys = konfigSystem(); if (!baza || !sys) return '';
+  const q = new URLSearchParams(); q.set('app', 'konfig'); q.set('system', sys);
+  if (sys === 'przykrecanie') q.set('podloze', KONFIG_PODLOZE[st.ans.podloze]);
+  const m = konfigM2(st.ans.m2); if (m !== null) q.set('m2', String(m));
+  if (SPRAWA_Z_ADRESU) q.set('sprawa', SPRAWA_Z_ADRESU);
+  return baza + (baza.indexOf('?') < 0 ? '?' : '&') + q.toString();
+}
+function konfigBox() {
+  const u = konfigAdres(); if (!u) return '';
+  return `<div class="box" data-konfig><h3>Wycena orientacyjna</h3><p>${konfigSystem() === 'przykrecanie' ? 'Konfigurator płyt glinianych policzy materiał na Twoje metry: płyty, mocowanie i tynk.' : 'Konfigurator płyt glinianych policzy materiał na Twoje metry: płyty, klej i tynk.'}</p><a class="btn go" data-konfig-link href="${esc(u)}" target="_blank" rel="noopener">Policz materiał</a></div>`;
+}
 // K22.3 — blok w wyniku przy ocieplenie + „Ściana od zewnątrz” + „Szachulec (mur pruski)”: z tekstu Doc kolejki 22 (A1) tylko część o wypełnieniu pól
 // (decyzja Darka 23.11 do raportu 22: zasadą zostaje zdanie „Ścian ryglowych…” z korpusu, bez powtórzonego „nie ociepla się od zewnątrz”).
 const SZACH_ZEW_TXT = 'Od zewnątrz można ewentualnie wymienić albo uzupełnić wypełnienie pól — bloczkiem konopnym albo cegłą glinianą, w formacie dobranym do grubości belek. Dobór ustalamy na oględzinach.';
@@ -643,7 +695,9 @@ function ocenaAudytuDane() {
       const klej = KLEJ_OK.includes(x.podloze);
       if (x.podloze === 'Bal drewniany') up(1, 'Grubość ocieplenia trzeba dopasować do grubości bala.');
       else if (['Kamień', 'Mur z gliny', 'Szachulec', 'Konstrukcja szkieletowa'].includes(x.podloze)) up(2, 'Ocieplenie od wewnątrz takiej ściany wymaga obliczenia wilgotności dla konkretnego budynku.');
-      else if (x.podloze === 'Deskowanie') up(2, 'Deskowanie może kryć różne konstrukcje — trzeba zobaczyć, co jest pod spodem.');
+      // Deskowanie: system ustalony (przykręcanie, K23.4), ale co jest pod deskami — korpus milczy → audyt zalecany (poziom 1,
+      // decyzja Darka 24.11, kolejka 23c; do v6.0-23b wpisu nie było, w 08c7f8a był na poziomie 2).
+      else if (x.podloze === 'Deskowanie') up(1, 'Deskowanie może kryć różne konstrukcje — trzeba zobaczyć, co jest pod spodem.');
       else if (!klej && ['Gładź gipsowa', 'Tynk wapienny'].includes(x.podloze)) up(1, 'Podłoże do oceny przed montażem.');
     }
     if (m === 'Ściana od zewnątrz') {
@@ -832,7 +886,7 @@ function wDach(x) {
   return `<div class="box main"><h3>Dach: najpierw szczelność, potem reszta</h3>
       <p>Dach i styk budynku z gruntem najbardziej cierpią od wilgoci, dlatego remont starego domu zaczyna się od zabezpieczenia przed wodą. Dach można od razu naprawić docelowo albo zabezpieczyć tymczasowo — tymczasowo wtedy, gdy planowane prace przy ścianach lub fundamencie mogą poruszyć jego konstrukcję. Pamiętaj o regularnym czyszczeniu rynien.</p>
       ${T[x.problem] || ''}
-      ${x.pokrycie === 'Eternit (płyty azbestowo-cementowe)' ? '<p><b>Eternit</b> leżący na dachu nie stanowi bezpośredniego zagrożenia, dopóki nic się z nim nie dzieje. Najgroźniejszy jest demontaż — zdjęcie i utylizację zleć wyspecjalizowanej firmie, nie rób tego sam.</p>' : ''}
+      ${x.pokrycie === 'Eternit (płyty azbestowo-cementowe)' ? '<p><b>Eternit</b> leżący na dachu nie stanowi bezpośredniego zagrożenia, dopóki nic się z nim nie dzieje. Najgroźniejszy jest demontaż — zdjęcie i utylizację zleć wyspecjalizowanej firmie, nie rób tego samodzielnie.</p>' : ''}
       ${wkz(x) ? '<p><b>Dom w rejestrze zabytków albo w strefie ochrony?</b> Zdjęcie i wymiana pokrycia oraz zmiany bryły dachu wymagają pozwolenia konserwatora.</p>' : ''}${gez(x) ? GEZ_P : ''}
       <p>Twoje odpowiedzi: ${esc(x.bud)} · ${esc(x.pokrycie)} · ${esc(x.problem)}.</p></div>
       ${audyt(x.problem === 'Planuję remont całego domu — od czego zacząć' ? 'Diagnoza całego domu i plan kolejności prac.' : 'Oględziny pokrycia, deskowania i więźby od strony poddasza; ocena wilgotności drewna i plan prac przy dachu.')}${skan}`;
@@ -941,9 +995,11 @@ function wynik() {
     const otwarte = '<p>Do starych domów zalecane są materiały otwarte dyfuzyjnie: wełna drzewna, płyty ze słomy, beton konopny. Styropianu i wełny mineralnej w takich przegrodach się nie stosuje.</p>';
     if (m === 'Ściana od wewnątrz') {
     const klej = KLEJ_OK.includes(x.podloze);
-    const trudne = ['Kamień', 'Mur z gliny', 'Bal drewniany', 'Szachulec', 'Deskowanie', 'Konstrukcja szkieletowa', 'Gładź gipsowa', 'Tynk wapienny', 'Nie wiem'].includes(x.podloze);
+    const trudne = ['Kamień', 'Mur z gliny', 'Bal drewniany', 'Szachulec', 'Konstrukcja szkieletowa', 'Gładź gipsowa', 'Tynk wapienny', 'Nie wiem'].includes(x.podloze);
     const sys = klej
       ? `<h3>Możliwy system klejony</h3><p>Płyta gliniano-konopna Schleusner (sucha zabudowa — łatwy montaż) przyklejona wprost do muru — bez łat, wełny i wkrętów. To podłoże jest dopuszczone pod klejenie. Kleimy płyty 14 lub 22 mm, zawsze na całej powierzchni — na suficie płyty się przykręca, nie klei.</p><ul><li>Płyta gliniano-konopna Schleusner 14 lub 22 mm</li><li>Klej gliniany Schleusner</li><li>Tynk wierzchni Schleusner Feinputz</li></ul>`
+      : WKRET_OK.includes(x.podloze)
+      ? `<h3>System przykręcany do podłoża</h3><p>Płyta gliniano-konopna Schleusner 14 mm (sucha zabudowa — łatwy montaż) przykręcona wprost do podłoża z płyt drewnopochodnych albo deskowania — bez rusztu z łat. Przy podwyższonych wymaganiach akustycznych — płyta 22 mm.</p><p><b>Mocowanie:</b> 23 punkty mocowania na płytę 1,25 m², w 5 kolumnach co ok. 31 cm, naprzemiennie. Zszywki najwyżej co 15 cm i tylko na ścianie. Styki płyt glinianych nie wypadają nad stykami płyt drewnianych. Gdy płyta drewniana jest paroizolacją albo za nią jest folia, mocowania nie mogą jej przebić — podłoże razem z płytą gliniano-konopną musi być grubsze niż długość wkrętu lub zszywki.</p><ul><li>Płyta gliniano-konopna Schleusner 14 mm (22 mm przy podwyższonych wymaganiach akustycznych)</li><li>Wkręty albo zszywki</li><li>Tynk wierzchni Schleusner Feinputz</li></ul>`
       : `<h3>System na ruszcie</h3><p>Łaty 40×60, wełna drzewna Flex między nimi, na wierzch płyta gliniano-konopna Schleusner 14 lub 22 mm (sucha zabudowa — łatwy montaż). To podłoże nie jest na liście dopuszczonych pod klejenie.</p><ul><li>Płyta gliniano-konopna Schleusner 14 lub 22 mm</li><li>Maty z włókna drzewnego</li><li>Łaty 40×60 (tylko odbiór własny z Lubania)</li><li>Tynk wierzchni Schleusner Feinputz</li></ul>`;
     const bal = x.podloze === 'Bal drewniany';
     const mur = ['Kamień', 'Mur z gliny', 'Szachulec', 'Konstrukcja szkieletowa', 'Cegła'].includes(x.podloze);
@@ -953,7 +1009,7 @@ function wynik() {
       <p>Do starych domów zalecane są materiały otwarte dyfuzyjnie: wełna drzewna, płyty ze słomy, beton konopny. Styropianu i wełny mineralnej w takich ścianach się nie stosuje.</p>
       <p>Ilość: ${esc(ile(x))}.</p></div>
       ${x.emisja ? CERT_BOX() : ''}
-      <div class="box"><h3>Wycena orientacyjna</h3><p>Konfigurator płyt glinianych policzy materiał na Twoje metry: płyty, klej, tynk, wkręty i wysyłkę.</p><button class="btn go" type="button" data-act="konf">Przejdź do konfiguratora</button></div>
+      ${konfigBox()}
       ${trudne ? audyt('Dla tego podłoża najpierw oględziny: stan muru i wilgotność zdecydują o systemie.') : ''}`;
     }
     if (m === 'Ściana od zewnątrz') {
@@ -1271,6 +1327,7 @@ function formularz() {
     ${st.area === 'hurt' ? `<label class="f">Nazwa firmy<input type="text" id="f-firma" autocomplete="organization" required></label><label class="f">NIP<input type="text" id="f-nip" inputmode="numeric" placeholder="10 cyfr" required></label>
     <p class="note full" style="margin:0">Ofertę hurtową przygotowujemy wyłącznie dla firm. Przed wyceną sprawdzamy dane firmy w publicznym rejestrze (CEIDG lub KRS).</p>
     <label class="f full">Lista pozycji<textarea id="f-opis" placeholder="Wklej listę z pliku: nazwa, wymiar lub grubość, ilość"></textarea></label>` : (st.area === 'ogloszenie' ? `<label class="f full">Link do ogłoszenia i co Cię niepokoi<textarea id="f-opis" placeholder="Wklej link do ogłoszenia; zdjęcia możesz wysłać mailem"></textarea></label>` : `<label class="f full">Coś jeszcze o budynku?<textarea id="f-opis" placeholder="np. rok budowy, co już zrobiono, zdjęcia wyślemy mailem"></textarea></label>`)}
+    ${KONFIG_Z_ADRESU ? `<p class="note full" data-konfig-wej style="margin:0">Ilości z konfiguratora: ${esc(KONFIG_OPIS[KONFIG_Z_ADRESU.system])}${KONFIG_Z_ADRESU.podloze ? ' (' + esc(KONFIG_PODLOZE_OPIS[KONFIG_Z_ADRESU.podloze]) + ')' : ''}, ${esc(String(KONFIG_Z_ADRESU.m2).replace('.', ','))} m², płyta ${esc(KONFIG_Z_ADRESU.grubosc)} mm</p>` : ''}
     ${rozObszarPasuje() ? `<p class="note full" data-roz-wej style="margin:0">Do zapytania dołączymy wariant wybrany na karcie rozwiązań do remontu (${esc(ROZ_WEJSCIE_OPIS[ROZ_WEJSCIE[ROZ_Z_ADRESU.id.charAt(4)]] || '')}).</p>` : ''}
     <label class="chk full"><input type="checkbox" id="f-zgoda" required> Proszę o kontakt w sprawie tego zapytania i zgadzam się na przetwarzanie danych w tym celu.</label>
     <label class="chk full"><input type="checkbox" id="f-news"> Chcę dostawać newsletter REDUKS (nieobowiązkowe).</label>
@@ -1405,7 +1462,7 @@ function opZatwierdz() {
     if (wynik === 'ok' || wynik === 'test') {
       op = Object.assign(opNowy(), opZachowaj());
       op.info = wynik === 'test' ? 'Opinie są w trybie testowym — ta nie została wysłana. Napisz do nas: kontakt@reduks.pl.'
-        : 'Dziękujemy za opinię.' + (bezZgody ? ' E-maila nie zapisaliśmy — bez zgody na kontakt nie odpowiemy.' : '');
+        : 'Dziękujemy za opinię.' + (bezZgody ? ' E-mail nie został zapisany — bez zgody na kontakt nie odpowiemy.' : '');
       renderOpinia();
     } else {
       op.blad = kod === 'email' && dane.email ? 'Sprawdź adres e-mail.' : 'Nie udało się wysłać opinii. Spróbuj później — z Przewodnika możesz korzystać dalej.';
@@ -1422,11 +1479,50 @@ document.addEventListener('change', e => {
   if (e.target.id === 'op-zgoda') op.zgoda = e.target.checked;
 });
 
-var EKRAN_OST = null;
-// C1 (23c): znacznik gora (przewinięcie rodzica do góry ramki) tylko przy ZMIANIE EKRANU — region, kod, obszar, krok, wysłane;
-// wybór odpowiedzi w tym samym pytaniu zmienia tylko st.ans → sama wysokość, bez przewijania strony sklepu.
-function render() { renderInner(); const k = [loc.region ? 1 : 0, loc.kodDone ? 1 : 0, st.area || '', st.step, st.sent ? 1 : 0].join('|'); const nowy = k !== EKRAN_OST; EKRAN_OST = k; postWys(nowy); }
-function renderInner() { renderWidok(); renderOpinia(); }
+// K23c.1 — klucz ekranu: obszar | krok | widok (opWidok: krainy, kod, problem, id pytania, wynik, kontakt, przyjęte).
+// Inny klucz niż przy poprzednim renderze = nowy ekran: render() zwraca true (wersja publiczna wysyła wtedy rodzicowi
+// {gora:true}) i przewija na górę nowego ekranu. Wybór odpowiedzi w tym samym pytaniu, wpis w polu, pole wyboru — ten sam
+// klucz: false, bez przewijania. Pierwszy render (wczytanie strony) liczy się jako nowy ekran, ale niczego nie przewija.
+let EKRAN_KLUCZ = null;
+const ekranKlucz = () => (st.area || '') + '|' + st.step + '|' + opWidok();
+function render() { const nowy = renderInner(); postWys(nowy); return nowy; }
+function renderInner() {
+  renderWidok(); renderOpinia();
+  const k = ekranKlucz(), nowy = k !== EKRAN_KLUCZ, pierwszy = EKRAN_KLUCZ === null;
+  EKRAN_KLUCZ = k;
+  if (nowy && !pierwszy) naGoreEkranu();
+  return nowy;
+}
+// W ramce: góra ramki (window.scrollTo(0,0) — ramka ma zwykle wysokość treści, więc to tylko zabezpieczenie; stronę rodzica
+// przewija skrypt rodzica po {gora:true}). Bez ramki: jeśli początek strony uciekł nad okno, wracamy do niego.
+// Fokus na nagłówku nowego ekranu (tabindex -1, preventScroll — bez przewijania rodzica): czytnik ekranu zaczyna od pytania.
+function naGoreEkranu() {
+  try {
+    if (window.parent !== window) { if ((window.scrollY || 0) > 0) window.scrollTo(0, 0); }
+    else { const m = document.querySelector('main'), t = m ? m.getBoundingClientRect().top : 0;
+      if (t < 0) window.scrollTo(0, Math.max(0, t + (window.scrollY || 0))); }
+  } catch (er) {}
+  try { const h2 = document.querySelector('#view h2'); if (h2) { h2.setAttribute('tabindex', '-1'); h2.focus({ preventScroll: true }); } } catch (er) {}
+}
+// K23c.2 — pytanie jednokrotnego wyboru bez pól dodatkowych (bez chk i bez num): po tapnięciu ok. AUTO_MS podświetlenia,
+// potem „Dalej” tą samą ścieżką co przycisk (dalej()). Timer sprawdza, że to wciąż ten sam ekran i ta sama odpowiedź —
+// ręczne „Dalej”, „Wstecz”, inna odpowiedź albo opinia w tym czasie unieważniają poprzedni automat (bez podwójnego przeskoku).
+// Po automatycznym przejściu tapnięcia w odpowiedzi i w „Dalej” są ignorowane przez AUTO_BLOKADA ms — drugie tapnięcie
+// dwukliku nie wybiera niczego w następnym pytaniu („Wstecz” i inne przyciski działają od razu).
+// Pytania z polem (chk, m²): bez automatu i bez żadnego przewijania (decyzja Darka 24.11 — scrollIntoView ruszałby stronę
+// rodzica); zamiast tego drugi przycisk „Dalej” (data-dalej-przy, ta sama akcja) tuż pod wybraną odpowiedzią.
+const AUTO_MS = 250, AUTO_BLOKADA = 450;
+const AUTO = { timer: null, blokadaDo: 0 };
+const autoDalej = q => !!q && !q.chk && !q.num;
+function autoStop() { if (AUTO.timer) { clearTimeout(AUTO.timer); AUTO.timer = null; } }
+function dalej() { autoStop(); st.step++; render(); }
+function poWyborze(q, odp) {
+  autoStop();
+  if (!autoDalej(q)) return;
+  const k = ekranKlucz();
+  AUTO.timer = setTimeout(() => { AUTO.timer = null;
+    if (!st.sent && ekranKlucz() === k && st.ans[q.id] === odp) { AUTO.blokadaDo = Date.now() + AUTO_BLOKADA; dalej(); } }, AUTO_MS);
+}
 function renderWidok() {
   const a = st.area ? AREAS[st.area] : null;
   const total = a ? qsOf(a).length + 2 : 1;
@@ -1469,7 +1565,7 @@ function renderWidok() {
   if (qi < qsOf(a).length) {
     const q = qsOf(a)[qi];
     v.innerHTML = `<h2>${q.t}</h2><p class="lead">${a.name}</p>
-      <div class="opts">${sortO(q.o).map(o => `<button class="opt" type="button" data-ans="${esc(o)}" aria-pressed="${st.ans[q.id] === o}"><b>${esc(o)}</b></button>`).join('')}</div>
+      <div class="opts">${sortO(q.o).map(o => `<button class="opt" type="button" data-ans="${esc(o)}" aria-pressed="${st.ans[q.id] === o}"><b>${esc(o)}</b></button>${(q.chk || q.num) && st.ans[q.id] === o ? `<div class="dalej-przy" style="grid-column:1/-1"><button class="btn go" type="button" data-act="next" data-dalej-przy>Dalej</button></div>` : ''}`).join('')}</div>
       ${q.chk ? `<label class="f" style="flex-direction:row;align-items:center;gap:10px;margin-top:12px"><input type="checkbox" id="chk-${q.chk.id}" data-chk="${q.chk.id}" ${st.ans[q.chk.id] ? 'checked' : ''} style="width:20px;height:20px"> ${esc(q.chk.label)}</label>` : ''}
       ${q.num ? `<label class="f" style="margin-top:12px">${esc(q.num.label)}<input type="number" min="1" max="10000" step="0.5" inputmode="decimal" id="num-${q.num.id}" data-num="${q.num.id}" value="${st.ans[q.num.id] || ''}"></label>` : ''}
       <div class="nav"><button class="btn" type="button" data-act="back">Wstecz</button><button class="btn go" type="button" data-act="next" ${st.ans[q.id] ? '' : 'disabled'}>Dalej</button></div>`;
@@ -1498,7 +1594,7 @@ document.addEventListener('change', e => { const c = e.target.closest('[data-chk
     render(); } });
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.op) { const o = b.dataset.op;
+  if (b.dataset.op) { autoStop(); const o = b.dataset.op;   // K23c (recenzja P2-a): opinia w 250 ms nie przenosi ekranu
     if (o === 'otworz') { op.otwarty = true; op.info = ''; op.blad = ''; op.kontekst = opKontekst(); renderOpinia(); const r = document.querySelector('input[name="op-rodzaj"]'); if (r) try { r.focus(); } catch (er) {} }
     if (o === 'zamknij') { const kc = { kciuki: op.kciuki, kciukInfo: op.kciukInfo, widok: op.widok }; op = Object.assign(opNowy(), kc); renderOpinia(); }
     if (o === 'kciuk_gora' || o === 'kciuk_dol') opKciuk(o);
@@ -1506,9 +1602,11 @@ document.addEventListener('click', e => {
   if (b.dataset.fixregion) { loc.region = b.dataset.fixregion; loc.spr = null; loc.kodDone = true; render(); return; }
   if (b.dataset.region) { loc.region = b.dataset.region; render(); return; }
   if (b.dataset.area) { st = { area: b.dataset.area, step: 1, ans: {}, sent: null }; render(); return; }
-  if (b.dataset.ans) { const q = qsOf(AREAS[st.area])[st.step - 1]; if ((q.id === 'miejsce' || (st.area === 'tynk' && q.id === 'cel')) && st.ans[q.id] !== b.dataset.ans) st.ans = st.ans.stare ? { stare: true } : {}; st.ans[q.id] = b.dataset.ans; if (q.id === 'metry') delete st.ans._metryZPola; render(); return; }
+  if ((b.dataset.ans || b.dataset.act === 'next') && Date.now() < AUTO.blokadaDo) return;   // K23c.2: drugie tapnięcie po automacie
+  if (b.dataset.ans) { const q = qsOf(AREAS[st.area])[st.step - 1]; if ((q.id === 'miejsce' || (st.area === 'tynk' && q.id === 'cel')) && st.ans[q.id] !== b.dataset.ans) st.ans = st.ans.stare ? { stare: true } : {}; st.ans[q.id] = b.dataset.ans; if (q.id === 'metry') delete st.ans._metryZPola; render(); poWyborze(q, b.dataset.ans); return; }
+  autoStop();
   const act = b.dataset.act;
-  if (act === 'next') { st.step++; render(); }
+  if (act === 'next') dalej();
   if (act === 'back') { st.step--; if (st.step <= 0) st = { area: null, step: 0, ans: {}, sent: null }; render(); }
   if (act === 'reset') { st = { area: null, step: 0, ans: {}, sent: null }; render(); }
   if (act === 'locback') { loc.region = null; loc.spr = null; render(); }
@@ -1521,7 +1619,6 @@ document.addEventListener('click', e => {
     loc.kodDone = true; render(); }
   if (act === 'kodkeep') { loc.spr = null; loc.kodDone = true; render(); }
   if (act === 'kodfix') { loc.spr = null; render(); }
-  if (act === 'konf') { b.textContent = 'W wersji docelowej otworzy konfigurator'; b.disabled = true; }
   if (act === 'copy') { try { navigator.clipboard.writeText($('#rec').textContent).then(() => b.textContent = 'Skopiowano', () => b.textContent = 'Kopiowanie zablokowane'); } catch (er) { b.textContent = 'Kopiowanie zablokowane'; } }
 });
 
@@ -1551,6 +1648,8 @@ document.addEventListener('submit', e => {
     zgoda_kontakt_w_sprawie_zapytania: true, zgoda_newsletter: g('f-news').checked
   };
   if (rozObszarPasuje()) st.sent.rozwiazanie = Object.assign({}, ROZ_Z_ADRESU);
+  if (KONFIG_Z_ADRESU) st.sent.konfigurator = Object.assign({}, KONFIG_Z_ADRESU);
+  if (KONFIG_Z_ADRESU && SPRAWA_Z_ADRESU) st.sent.sprawa = SPRAWA_Z_ADRESU;
   if (st.area === 'hurt') st.sent.weryfikacja_firmy = { nip_suma_kontrolna: 'OK', rejestr: 'DO SPRAWDZENIA — CEIDG lub KRS' };
   st.sent.zrodlo = 'poradnik REDUKS (www)';
   if (!POLITYKA_URL) { st.sent = null; err.hidden = false; err.textContent = 'Formularz chwilowo niedostępny. Napisz do nas: kontakt@reduks.pl.'; return; }
@@ -1580,7 +1679,7 @@ document.addEventListener('submit', e => {
 
 // Ramka (GitHub Pages w ShopGold/GTM, 23.11): wysyłamy wysokość TREŚCI — dół ostatniego elementu body (bez skryptów)
 // plus margines dolny równy górnemu. NIE scrollHeight: ten nigdy nie spada poniżej wysokości ramki, więc ramka tylko by rosła.
-// Wiadomość niesie wyłącznie liczbę (i znacznik gora przy zmianie ekranu). Poza ramką nic nie wysyłamy.
+// Wiadomość niesie wyłącznie liczbę (i znacznik gora wyłącznie przy zmianie ekranu, K23c.1). Poza ramką nic nie wysyłamy.
 function wysTresci() {
   const el = Array.prototype.filter.call(document.body.children, e => !/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(e.tagName));
   if (!el.length) return 0;
