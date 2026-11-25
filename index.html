@@ -177,7 +177,7 @@ pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-rad
 <script>
 {
 // Wersja Przewodnika — zapisywana w każdym rekordzie zgłoszenia (WWD pkt 21: wynik wie, wg jakiej wersji reguł powstał).
-const PRZEWODNIK_WERSJA = 'v6.2-2026-11-24';
+const PRZEWODNIK_WERSJA = 'v6.2.1-2026-11-25';
 // Link do karty „do rozmowy z urzędem” (MC_USTAWIENIA → KARTA_URZAD_URL; wstawia build_public.py). Puste = link ukryty.
 const KARTA_URZAD_URL = "https://bonzeeq.github.io/reduks-poradnik/karta-koncepcji.pdf";
 // Rozwiązania do remontu: adres strony z kartami wariantów, obok Przewodnika (4. argument build_public.py). Puste = linki ukryte.
@@ -836,17 +836,71 @@ function konfigBaza() {
   let e = ''; try { e = typeof ENDPOINT === 'string' ? ENDPOINT : ''; } catch (er) { e = ''; }
   return e && e.indexOf('__') !== 0 && /^https:\/\//.test(e) ? e : '';
 }
+// v6.2.1 (P1-a SPRZEDAŻ v2, zlecenie Darka 24.11): konfigurator WYŁĄCZNIE po kwalifikacji płyt. Kwalifikacja = wynik, w którym
+// Przewodnik już dziś rekomenduje system płyt Schleusner (konfigSystem — wiersze K23.1 1–2 i 7–8, bez nowych reguł technicznych)
+// i nie ma warunku STOP, który Przewodnik już ma:
+//   • ocena audytu poziom 2 „Zanim kupisz materiał, ktoś powinien zobaczyć budynek” (ocenaAudytuDane: aktywna wilgoć, zasolenie,
+//     szczelne powłoki, konstrukcja, zabytek przy elewacji itd.),
+//   • pilność „Zabezpiecz od razu” (pilnoscDane().teraz — przeciek, ugięty strop, rosnące pęknięcie, mokre drewno).
+// Na zewnątrz (ocieplenie „Ściana od zewnątrz”, tynk „Na zewnątrz”) i pozostałe obszary (wilgoć, pleśń, szachulec…) konfigSystem
+// zwraca '' — bez przycisku, zostaje „Zapytaj o wycenę lub audyt” (wycena indywidualna / kontakt). Dziś na ścieżkach z konfigSystem
+// żaden STOP nie występuje (test test_kwalifikacja.js — tabela = kod); bezpiecznik działa, gdy reguły oceny się zmienią.
+function kwalifikacjaStop() {
+  const o = ocenaAudytuDane(), p = pilnoscDane();
+  return !!((o && o.poziom >= 2) || (p && p.teraz.length));
+}
+function kwalifikacjaPlyt() { const sys = konfigSystem(); return sys && !kwalifikacjaStop() ? sys : ''; }
+// Podłoże klejenia w konfiguratorze (lista klejenia KF.PODLOZA, KONFIGURATOR.js) — konfigurator @31 ignoruje ten parametr przy klejeniu,
+// od @32 ustawia nim pole „Podłoże” (kfStartZAdresu_). Liczone identycznie (bez gruntu i kołków), więc ilości się nie zmieniają.
+const KONFIG_PODLOZE_KLEJ = { 'Cegła': 'cegla', 'Poroton': 'poroton', 'Silikat': 'silikat', 'Tynk gliniany': 'tynk_gliniany' };
+// Grubość płyty przekazywana tylko, gdy wynik ją ustala: przykręcanie do podłoża pełnego = 14 mm (tekst wyniku K23.4: „Płyta
+// gliniano-konopna Schleusner 14 mm”, źródło w notatce .int przycisku — 14 mm optymalny nośnik tynku na podłożach pełnych; 22 mm tylko
+// przy podwyższonych wymaganiach akustycznych — Przewodnik o nie nie pyta). Klejenie: wynik mówi „14 lub 22 mm” → bez parametru (wybór w kalkulatorze).
+const konfigGrubosc = sys => sys === 'przykrecanie' ? '14' : '';
 function konfigAdres() {
-  const baza = konfigBaza(), sys = konfigSystem(); if (!baza || !sys) return '';
+  const baza = konfigBaza(), sys = kwalifikacjaPlyt(); if (!baza || !sys) return '';
   const q = new URLSearchParams(); q.set('app', 'konfig'); q.set('system', sys);
   if (sys === 'przykrecanie') q.set('podloze', KONFIG_PODLOZE[st.ans.podloze]);
+  if (sys === 'klejenie' && KONFIG_PODLOZE_KLEJ[st.ans.podloze]) q.set('podloze', KONFIG_PODLOZE_KLEJ[st.ans.podloze]);
   const m = konfigM2(st.ans.m2); if (m !== null) q.set('m2', String(m));
+  const g = konfigGrubosc(sys); if (g) q.set('grubosc', g);
+  q.set('obszar', st.area);   // lejek (@32): obszar z białej listy data-area; @31 ignoruje
   if (SPRAWA_Z_ADRESU) q.set('sprawa', SPRAWA_Z_ADRESU);
   return baza + (baza.indexOf('?') < 0 ? '?' : '&') + q.toString();
 }
+// Przycisk NA GÓRZE wyniku (zaraz pod nagłówkiem „Co proponujemy” — nagłówek jest celem przewinięcia „Pokaż wynik”, więc przycisk
+// jest widoczny od razu, także przy 390 px). Tylko przy kwalifikacji TAK; nowa karta (Przewodnik bywa w ramce ShopGold).
 function konfigBox() {
   const u = konfigAdres(); if (!u) return '';
-  return `<div class="box" data-konfig><h3>Wycena orientacyjna</h3><p>${konfigSystem() === 'przykrecanie' ? 'Konfigurator płyt glinianych policzy materiał na Twoje metry: płyty, mocowanie i tynk.' : 'Konfigurator płyt glinianych policzy materiał na Twoje metry: płyty, klej i tynk.'}</p><a class="btn go" data-konfig-link href="${esc(u)}" target="_blank" rel="noopener">Policz materiał</a></div>`;
+  return `<div class="box kwal" data-konfig data-kwal="tak"><a class="btn go" data-konfig-link href="${esc(u)}" target="_blank" rel="noopener">Policz materiał dla swojej ściany</a>
+      <p class="note" style="margin:8px 0 0">${konfigSystem() === 'przykrecanie' ? 'Kalkulator płyt glinianych policzy materiał na Twoje metry: płyty, mocowanie i tynk.' : 'Kalkulator płyt glinianych policzy materiał na Twoje metry: płyty, klej i tynk.'} Ilości bez cen — wycenę przygotujemy na Twoje zapytanie.</p></div>`;
+}
+// v6.2.1 LEJEK (P1-a pkt 5) — liczniki bez danych osobowych: wysyłane WYŁĄCZNIE { typ:'lejek', zdarzenie, obszar, wersja } —
+// zdarzenie z białej listy, obszar = klucz AREAS (data-area) albo '', wersja = PRZEWODNIK_WERSJA. Zero identyfikatorów, odpowiedzi,
+// treści, kodu pocztowego i krainy (IP widzi tylko Google — serwer go nie czyta ani nie zapisuje). Fire-and-forget: navigator.sendBeacon
+// (bez czekania, bez odczytu odpowiedzi); brak sendBeacon, brak ENDPOINT, zaślepka albo źródło (prototyp) → nic nie wysyła; błąd → cisza.
+// Hub @31 nie zna typu 'lejek' — żądanie bez e-maila odrzuca walidacja zgłoszenia (pzWaliduj_ → kod 'email', bez zapisu) = cisza.
+// Zdarzenia Przewodnika: wejscie (wybór problemu — raz na obszar w sesji strony), wynik + kwal_tak / kwal_nie (raz na wynik —
+// podpis obszar + odpowiedzi, tylko w pamięci strony). Otwarcie kalkulatora i „Wyślij zapytanie” liczy konfigurator (@32), ZP — puls.
+const LEJEK_ZDARZENIA = ['wejscie', 'wynik', 'kwal_tak', 'kwal_nie'];
+const LEJEK_BYLO = new Set();
+function lejekDane(zdarzenie) {
+  return { typ: 'lejek', zdarzenie: zdarzenie, obszar: Object.prototype.hasOwnProperty.call(AREAS, st.area) ? st.area : '', wersja: PRZEWODNIK_WERSJA };
+}
+function lejek(zdarzenie, podpis) {
+  try {
+    if (!LEJEK_ZDARZENIA.includes(zdarzenie)) return false;
+    const baza = konfigBaza(); if (!baza || typeof navigator === 'undefined' || typeof navigator.sendBeacon !== 'function') return false;
+    const d = lejekDane(zdarzenie), k = zdarzenie + '|' + d.obszar + '|' + (podpis || '');
+    if (LEJEK_BYLO.has(k)) return false; LEJEK_BYLO.add(k);
+    navigator.sendBeacon(baza, JSON.stringify(d));
+    return true;
+  } catch (er) { return false; }
+}
+function lejekEkran() {
+  if (!st.area || st.sent) return;
+  lejek('wejscie', '');
+  if (opWidok() === 'wynik') { const p = opPodpisWyniku(); lejek('wynik', p); lejek(kwalifikacjaPlyt() ? 'kwal_tak' : 'kwal_nie', p); }
 }
 // K22.3 — blok w wyniku przy ocieplenie + „Ściana od zewnątrz” + „Szachulec (mur pruski)”: z tekstu Doc kolejki 22 (A1) tylko część o wypełnieniu pól
 // (decyzja Darka 23.11 do raportu 22: zasadą zostaje zdanie „Ścian ryglowych…”, bez powtórzonego „nie ociepla się od zewnątrz”).
@@ -1186,7 +1240,6 @@ function wynik() {
       <p>Do starych domów zalecane są materiały otwarte dyfuzyjnie: wełna drzewna, płyty ze słomy, beton konopny. Styropianu i wełny mineralnej w takich ścianach się nie stosuje.</p>
       <p>Ilość: ${esc(ile(x))}.</p></div>
       ${x.emisja ? CERT_BOX() : ''}
-      ${konfigBox()}
       ${trudne ? audyt('Dla tego podłoża najpierw oględziny: stan muru i wilgotność zdecydują o systemie.') : ''}`;
     }
     if (m === 'Ściana od zewnątrz') {
@@ -1271,8 +1324,7 @@ function wynik() {
     const plyty = x.podloze !== 'Płyta gliniana';
     const klej = KLEJ_OK.includes(x.podloze);
     return `${plyty ? `<div class="box main" data-sucha><h3>Sucha zabudowa — płyty gliniane (samodzielny montaż)</h3>
-      <p><b>Płyty gliniano-konopne Schleusner (sucha zabudowa — łatwy montaż)</b> to najprostsza droga do glinianej ściany, także bez doświadczenia w tynkowaniu. ${klej ? 'Na takie podłoże przykleja się je wprost do ściany klejem glinianym.' : WKRET_OK.includes(x.podloze) ? 'Na takie podłoże przykręca się je albo przypina zszywkami wprost, bez rusztu — wystarczy cieńsza płyta, 10 lub 14 mm.' : 'Na takim podłożu montuje się je na ruszcie z łat.'} Na wierzch idzie siatka zatopiona w kleju glinianym albo tynku drobnym i cienka warstwa tynku — razem co najmniej 3 mm. Płyt nie trzeba gruntować przed tynkiem glinianym. Płyty kładzie się na suchą ścianę — jeśli mur jest zawilgocony, najpierw trzeba usunąć przyczynę.</p>${x.metry ? `<p>Ilość: ${esc(ile(x))}.</p>` : ''}${klej ? '<p>Na suficie płyty się przykręca, nie klei.</p>' : ''}
-      ${konfigBox()}</div>` : ''}
+      <p><b>Płyty gliniano-konopne Schleusner (sucha zabudowa — łatwy montaż)</b> to najprostsza droga do glinianej ściany, także bez doświadczenia w tynkowaniu. ${klej ? 'Na takie podłoże przykleja się je wprost do ściany klejem glinianym.' : WKRET_OK.includes(x.podloze) ? 'Na takie podłoże przykręca się je albo przypina zszywkami wprost, bez rusztu — wystarczy cieńsza płyta, 10 lub 14 mm.' : 'Na takim podłożu montuje się je na ruszcie z łat.'} Na wierzch idzie siatka zatopiona w kleju glinianym albo tynku drobnym i cienka warstwa tynku — razem co najmniej 3 mm. Płyt nie trzeba gruntować przed tynkiem glinianym. Płyty kładzie się na suchą ścianę — jeśli mur jest zawilgocony, najpierw trzeba usunąć przyczynę.</p>${x.metry ? `<p>Ilość: ${esc(ile(x))}.</p>` : ''}${klej ? '<p>Na suficie płyty się przykręca, nie klei.</p>' : ''}</div>` : ''}
     ${x.emisja ? CERT_BOX() : ''}
     <div class="box main" data-tynk-druga><h3>${plyty ? 'Druga opcja: tynk gliniany' : 'Tynk gliniany do wnętrza'}</h3><p>Podłoże: ${esc(x.podloze)}.${x.podloze === 'Płyta gliniana' ? ' Na płytach gliniano-konopnych tynk wierzchni kładziemy po zatopieniu siatki w kleju glinianym lub tynku drobnym — razem co najmniej 3 mm.' : ''}</p><ul>${prod}</ul></div>
       ${x.podloze !== 'Płyta gliniana' ? audyt('Ocena starego tynku i podłoża przed nową warstwą.') : ''}`;
@@ -1711,19 +1763,61 @@ document.addEventListener('change', e => {
 let EKRAN_KLUCZ = null, POKAZ_WYNIK = false;
 // v6.3: + otwarta grupa menu — tapnięcie kafla grupy to nowy ekran (bez przewijania), wybór obszaru z grupy też.
 const ekranKlucz = () => (st.area || '') + '|' + st.step + '|' + opWidok() + '|' + (st.area ? '' : grupa || '');
+// v6.2.1 P1-b (zgłoszenie Darka, NOC 24/25.11: „na iPhonie przy części opcji ekran ucieka w dół”): pomiar na 38d5171 (Chrome,
+// emulacja iPhone 390 px, test_przewijanie_wszystkie_chrome.js) — 50 tapnięć z 780 przewijało o 10–316 px, wszystkie na ekranie
+// „Spróbujmy rozpoznać dom” (długa lista z podpowiedziami regionu): następny ekran jest NIŻSZY, strona się skraca i przeglądarka sama
+// obcina pozycję do nowego końca strony (scrollTo(y0) nie może tego cofnąć; w ramce to samo robi strona rodzica, gdy ramka maleje).
+// Poprawka: przy zmianie ekranu (poza wyjątkami) #view zachowuje wysokość sprzed przebudowy (min-height) — pozycja zostaje co do piksela.
+// Przytrzymanie tylko przy niewielkim skróceniu (≤ TRZYMAJ_MAX px, np. pytanie → pytanie), żeby po dużym skróceniu (np. „Wstecz” z długiego
+// wyniku) nie zostawić pustego ekranu; strona bez ramki zwalnia przytrzymanie, gdy użytkownik przewinie w górę i nie jest już potrzebne.
+// Wyjątki (przewinięcie do nagłówka, bez przytrzymania): „Pokaż wynik”, kontakt, „przyjęte”.
+const TRZYMAJ_MAX = 600;
+// A2 (pomiar po 015ca97): na stronie bez ramki skrócenie ekranu „Spróbujmy rozpoznać dom” przekracza 600 px (lista + 3 wskazówki),
+// więc próg zastąpiony warunkiem widoczności: przytrzymujemy, gdy po przywróceniu pozycji y0 w oknie zostaje choć fragment nowej
+// treści (dół nowego ekranu poniżej górnej krawędzi okna); gdy nic by nie zostało (np. „Wstecz” z długiego wyniku) — bez przytrzymania,
+// bo pusty ekran byłby gorszy niż obcięcie. Krok NAPRZÓD (odpowiedź z automatem, „Dalej”) — przytrzymanie ZAWSZE (zlecenie: 0 px po
+// tapnięciu na każdym pytaniu; 12/1560 tapnięć — ostatni rząd „Spróbujmy rozpoznać dom” przy 390 px — zostawia wtedy nad oknem cały nowy
+// ekran: do decyzji Darka). DOMYŚLNE – do potwierdzenia. W ramce pozycji rodzica nie znamy — próg px (TRZYMAJ_MAX), krok naprzód też zawsze.
+const TRZYMAJ_WIDAC = 0;
+let KROK_NAPRZOD = false;
+function trzymajWysokosc(h0, y0) {
+  try {
+    const v = document.getElementById('view'); if (!v) return;
+    v.style.minHeight = '';
+    if (!(h0 > 0)) return;
+    const h = v.offsetHeight; if (h >= h0) return;
+    const samodzielna = window.parent === window;
+    const dolNowej = v.getBoundingClientRect().top + pozycja() + h;
+    if (KROK_NAPRZOD || (samodzielna ? dolNowej > y0 + TRZYMAJ_WIDAC : h0 - h <= TRZYMAJ_MAX)) v.style.minHeight = h0 + 'px';
+  } catch (er) {}
+}
+function zwolnijWysokosc() {
+  try {
+    const v = document.getElementById('view'); if (!v || !v.style.minHeight || window.parent !== window) return;
+    const ost = v.lastElementChild, dol = ost ? ost.getBoundingClientRect().bottom + pozycja() : 0;
+    const zapas = document.documentElement.scrollHeight - (v.getBoundingClientRect().bottom + pozycja());   // treść pod #view (zastrzeżenie)
+    if (pozycja() + window.innerHeight <= dol + zapas) v.style.minHeight = '';
+  } catch (er) {}
+}
+try { window.addEventListener('scroll', zwolnijWysokosc, { passive: true }); } catch (er) {}
 function render() { const nowy = renderInner(); postWys(nowy); return nowy; }
 function renderInner() {
-  const y0 = pozycja();
-  renderWidok(); renderOpinia();
+  const y0 = pozycja(), vw = document.getElementById('view'), h0 = vw ? vw.offsetHeight : 0;
+  renderWidok(); renderOpinia(); lejekEkran();
   const k = ekranKlucz(), nowy = k !== EKRAN_KLUCZ, pierwszy = EKRAN_KLUCZ === null;
   EKRAN_KLUCZ = k;
   const w = opWidok(), doNaglowka = nowy && !pierwszy && ((POKAZ_WYNIK && w === 'wynik') || w === 'kontakt' || w === 'przyjete'); POKAZ_WYNIK = false;
+  trzymajWysokosc(doNaglowka || pierwszy ? 0 : h0, y0); KROK_NAPRZOD = false;
   if (doNaglowka) przewinDoNaglowka(w); else if (!pierwszy) przywrocPozycje(y0);
   if (nowy && !pierwszy) fokusNaglowka();
   return false;
 }
 function pozycja() { try { return window.scrollY || 0; } catch (er) { return 0; } }
-function przywrocPozycje(y0) { try { if (pozycja() !== y0) window.scrollTo(0, y0); } catch (er) {} }
+// pozycja okna i scrollingElement (iOS Safari bywa niespójny między nimi) — przywracamy oba
+function przywrocPozycje(y0) {
+  try { if (pozycja() !== y0) window.scrollTo(0, y0); } catch (er) {}
+  try { const se = document.scrollingElement; if (se && se.scrollTop !== y0 && Math.abs(pozycja() - y0) > 1) se.scrollTop = y0; } catch (er) {}
+}
 // W ramce rodzic zmienia wysokość ramki dopiero po komunikacie z nową wysokością — wtedy okno ramki dostaje „resize”
 // i przewijamy jeszcze raz (jednorazowo, najwyżej przez 1,5 s), żeby nagłówek został u góry okna rodzica.
 function przewinDoNaglowka(widok) {
@@ -1750,7 +1844,7 @@ const AUTO = { timer: null, blokadaDo: 0 };
 const ostatniePytanie = () => !!st.area && st.step === qsOf(AREAS[st.area]).length;
 const autoDalej = q => !!q && !q.chk && !q.num && !ostatniePytanie();
 function autoStop() { if (AUTO.timer) { clearTimeout(AUTO.timer); AUTO.timer = null; } }
-function dalej() { autoStop(); st.step++; render(); }
+function dalej() { autoStop(); st.step++; KROK_NAPRZOD = true; render(); }
 function poWyborze(q, odp) {
   autoStop();
   if (!autoDalej(q)) return;
@@ -1826,7 +1920,7 @@ function renderWidok() {
     return;
   }
   if (st.step === qsOf(a).length + 1) {
-    v.innerHTML = `<h2>Co proponujemy</h2><p class="lead">Na podstawie Twoich odpowiedzi.</p><div class="res">${bezpBox()}${regionBox()}${ocenaAudytu() || ''}${statusBox()}${wynik()}${rozBox()}${pomBox()}${stareBox()}${pilnoscBox()}${brakiBox()}</div>
+    v.innerHTML = `<h2>Co proponujemy</h2>${konfigBox()}<p class="lead">Na podstawie Twoich odpowiedzi.</p><div class="res">${bezpBox()}${regionBox()}${ocenaAudytu() || ''}${statusBox()}${wynik()}${rozBox()}${pomBox()}${stareBox()}${pilnoscBox()}${brakiBox()}</div>
       <div class="nav"><button class="btn" type="button" data-act="back">Wstecz</button><button class="btn go" type="button" data-act="next">Zapytaj o wycenę lub audyt</button></div>`;
     return;
   }
@@ -1858,7 +1952,7 @@ document.addEventListener('click', e => {
   if (sm) { e.preventDefault(); autoStop(); grupa = grupa === sm.dataset.grupa ? null : sm.dataset.grupa; render(); return; }
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.op) { autoStop(); const o = b.dataset.op;   // K23c (recenzja P2-a): opinia w 250 ms nie przenosi ekranu
-    if (o === 'otworz') { op.otwarty = true; op.info = ''; op.blad = ''; op.kontekst = opKontekst(); renderOpinia(); const r = document.querySelector('input[name="op-rodzaj"]'); if (r) try { r.focus(); } catch (er) {} }
+    if (o === 'otworz') { op.otwarty = true; op.info = ''; op.blad = ''; op.kontekst = opKontekst(); renderOpinia(); const r = document.querySelector('[data-op-form] legend'); if (r) try { r.setAttribute('tabindex', '-1'); r.focus({ preventScroll: true }); } catch (er) {} }
     if (o === 'zamknij') { const kc = { kciuki: op.kciuki, kciukInfo: op.kciukInfo, widok: op.widok }; op = Object.assign(opNowy(), kc); renderOpinia(); }
     if (o === 'kciuk_gora' || o === 'kciuk_dol') opKciuk(o);
     return; }
