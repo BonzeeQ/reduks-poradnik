@@ -202,7 +202,8 @@ pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-rad
 <script id="kod-zapytania">
 /*KOD_ZAPYTANIA.js — START (kopia 1:1 wstawiana przez build_public.py; nie edytować tutaj)*/
 var KOD_WERSJA = 1;
-var KOD_POLA_ = ['v', 't', 'o', 'd', 'kr', 'kp', 'a', 's', 'm2', 'poz', 'oc', 'nw', 'wer', 'g', 'zb', 'fp'];
+var KOD_POLA_ = ['v', 't', 'o', 'd', 'kr', 'kp', 'a', 's', 'm2', 'poz', 'oc', 'nw', 'wer', 'g', 'zb', 'fp', 'pm', 'sr', 'si', 'od', 'ko'];
+var KOD_POMIESZCZENIA_ = ['pokoj', 'korytarz', 'poddasze', 'lazienka', 'kuchnia', 'piwnica'];
 var KOD_GRUBOSCI_ = [10, 14, 22, 25];
 
 /** Grubość płyty z KOD: 10|14|22|25 (liczba albo tekst cyfr) albo null; inna wartość → undefined (pole pominięte). */
@@ -288,7 +289,9 @@ function kodOczysc_(o) {
     if (o[k] === undefined) continue;
     if (k === 'g') { var g = kodGrubosc_(o.g); if (g !== undefined) w.g = g; continue; }
     if (k === 'zb') { if (o.zb === 'tasma' || o.zb === 'siatka') w.zb = o.zb; continue; }
-    if (k === 'fp') { var fp = (o.fp === 1 || o.fp === true || o.fp === '1') ? 1 : (o.fp === 0 || o.fp === false || o.fp === '0') ? 0 : undefined; if (fp !== undefined) w.fp = fp; continue; }
+    if (k === 'fp' || k === 'si' || k === 'od' || k === 'ko') { var b01 = (o[k] === 1 || o[k] === true || o[k] === '1') ? 1 : (o[k] === 0 || o[k] === false || o[k] === '0') ? 0 : undefined; if (b01 !== undefined) w[k] = b01; continue; }
+    if (k === 'pm') { if (KOD_POMIESZCZENIA_.indexOf(o.pm) >= 0) w.pm = o.pm; continue; }
+    if (k === 'sr') { if (o.sr === 'rowna' || o.sr === 'nierowna') w.sr = o.sr; continue; }
     w[k] = o[k];
   }
   return w;
@@ -362,7 +365,7 @@ if (typeof module !== 'undefined' && module.exports) {
 <script>
 {
 // Wersja Przewodnika — zapisywana w każdym rekordzie zgłoszenia (WWD pkt 21: wynik wie, wg jakiej wersji reguł powstał).
-const PRZEWODNIK_WERSJA = 'v6.4-2026-11-25';
+const PRZEWODNIK_WERSJA = 'v6.5-2026-11-25';
 // Link do karty „do rozmowy z urzędem” (MC_USTAWIENIA → KARTA_URZAD_URL; wstawia build_public.py). Puste = link ukryty.
 const KARTA_URZAD_URL = "https://bonzeeq.github.io/reduks-poradnik/karta-koncepcji.pdf";
 // Rozwiązania do remontu: adres strony z kartami wariantów, obok Przewodnika (4. argument build_public.py). Puste = linki ukryte.
@@ -1151,12 +1154,92 @@ function konfigAdres() {
   if (SPRAWA_Z_ADRESU) q.set('sprawa', SPRAWA_Z_ADRESU);
   return baza + (baza.indexOf('?') < 0 ? '?' : '&') + q.toString();
 }
+// v6.5 (@33 pkt 5): opis pozycji pod przyciskiem wg systemu — przy ruszcie bez „klej” (konfigurator rusztu liczy łaty, wełnę drzewną,
+// płyty i mocowanie; system „Na ruszcie” w wyniku: łaty 40×60, wełna drzewna Flex, płyta 14 lub 22 mm). Bez liczb.
+const KONFIG_POZYCJE_OPIS = {
+  klejenie: 'Kalkulator płyt glinianych policzy materiał na Twoje metry: płyty, klej i tynk.',
+  przykrecanie: 'Kalkulator płyt glinianych policzy materiał na Twoje metry: płyty, mocowanie i tynk.',
+  ruszt: 'Kalkulator płyt glinianych policzy materiał na Twoje metry: łaty, wełnę drzewną, płyty i mocowanie.'
+};
 // Przycisk NA GÓRZE wyniku (zaraz pod nagłówkiem „Co proponujemy” — nagłówek jest celem przewinięcia „Pokaż wynik”, więc przycisk
 // jest widoczny od razu, także przy 390 px). Tylko przy kwalifikacji TAK; nowa karta (Przewodnik bywa w ramce ShopGold).
 function konfigBox() {
   const u = konfigAdres(); if (!u) return '';
   return `<div class="box kwal" data-konfig data-kwal="tak"><a class="btn go" data-konfig-link href="${esc(u)}" target="_blank" rel="noopener">Policz materiał dla swojej ściany</a>
-      <p class="note" style="margin:8px 0 0">${konfigSystem() === 'przykrecanie' ? 'Kalkulator płyt glinianych policzy materiał na Twoje metry: płyty, mocowanie i tynk.' : 'Kalkulator płyt glinianych policzy materiał na Twoje metry: płyty, klej i tynk.'} Ilości bez cen — wycenę przygotujemy na Twoje zapytanie.</p></div>`;
+      <p class="note" style="margin:8px 0 0">${KONFIG_POZYCJE_OPIS[konfigSystem()] || KONFIG_POZYCJE_OPIS.klejenie} Ilości bez cen — wycenę przygotujemy na Twoje zapytanie.</p>${strefaWodyBox()}</div>`;
+}
+// v6.5 (@34 pkt 8, BETA TYNKI): przycisk „Policz tynk dla swojej ściany” WYŁĄCZNIE tam, gdzie Przewodnik JUŻ DZIŚ rekomenduje
+// konkretny tynk gliniany Schleusner (wynik tynk · „Nowy tynk” · „Wewnątrz”, boks „Tynk gliniany do wnętrza” / „Druga opcja: tynk
+// gliniany” — lista produktów wg odpowiedzi „Jakiego wykończenia szukasz?”). Bez nowych reguł technicznych: system = produkt, który
+// wynik już wymienia, na podłożu glinianym (DOMYŚLNE – do potwierdzenia):
+//   Płyta gliniana: „Naturalna glina w kolorze” (Feinputz na płytach) → T4, „Cienka biała warstwa wierzchnia” (Edelputz 601) → T5,
+//                   „Malowanie farbą glinianą” (Lehmfarbe 603) → T6;
+//   Tynk gliniany:  Edelputz → T5, Lehmfarbe → T6 (Feinputz na starym tynku glinianym — w katalogu brak systemu → bez przycisku).
+// Bez przycisku: „Jeszcze nie wiem” (trzy produkty, brak jednego systemu), pozostałe podłoża (tynk wapienny, gładź gipsowa — grunt bez
+// karty w katalogu, mur bez tynku — podkład T1–T3, którego wynik nie rekomenduje, deskowanie, bal, kamień, nie wiem), tynk na zewnątrz,
+// pęknięcia / plamy / zdejmowanie gładzi (naprawa, nie rekomendacja) i każdy STOP z kwalifikacjaStop (piwnica — na stałe, decyzja Darka
+// 25.11; ocena audytu poziom 2; pilność „od razu”). Systemy T1–T6 = KATALOG_ZUZYCIA / SYSTEMY_ZUZYCIA (ZUZYCIE.js, @34a): T4 Feinputz na
+// płytach, T5 Edelputz 601, T6 Lehmfarbe 603 (źródła i strony — ZUZYCIE.js).
+// TYNK_BETA = false: przycisk ukryty, dopóki Apps Script @34 (zakładka „Tynki gliniane (beta)” w konfiguratorze) nie jest wdrożony.
+// Włączenie = zmiana tej jednej stałej na true przy publikacji Pages po @34 (test_tynk.js czyta tę stałą).
+const TYNK_BETA = true;   // @34 wdrożone 25.11 17:27 (wersja 33, wdrozenie-7) — przycisk włączony
+const TYNK_SYSTEM = {
+  'Płyta gliniana': { 'Naturalna glina w kolorze': 'T4', 'Cienka biała warstwa wierzchnia': 'T5', 'Malowanie farbą glinianą': 'T6' },
+  'Tynk gliniany': { 'Cienka biała warstwa wierzchnia': 'T5', 'Malowanie farbą glinianą': 'T6' }
+};
+// Tynk gliniany wewnątrz rekomendowany w wyniku (bez względu na system) — warunek bloku „Zanim zaczniesz”.
+function tynkWewnatrz(obszar, odp) {
+  const a = arguments.length ? obszar : st.area, x = arguments.length ? (odp || {}) : st.ans;
+  return a === 'tynk' && (!x.cel || x.cel === 'Nowy tynk') && x.gdzie === 'Wewnątrz';
+}
+function tynkSystem(obszar, odp) {
+  const a = arguments.length ? obszar : st.area, x = arguments.length ? (odp || {}) : st.ans;
+  if (!tynkWewnatrz(a, x)) return '';
+  return (TYNK_SYSTEM[x.podloze] || {})[x.efekt] || '';
+}
+function tynkKwalifikacja() { const s = tynkSystem(); return s && !kwalifikacjaStop() ? s : ''; }
+function tynkAdres() {
+  if (!TYNK_BETA) return '';
+  const baza = konfigBaza(), sys = tynkKwalifikacja(); if (!baza || !sys) return '';
+  const q = new URLSearchParams(); q.set('app', 'konfig'); q.set('system', sys);
+  const m = konfigM2(st.ans.m2); if (m !== null) q.set('m2', String(m));
+  q.set('obszar', st.area);
+  if (SPRAWA_Z_ADRESU) q.set('sprawa', SPRAWA_Z_ADRESU);
+  return baza + (baza.indexOf('?') < 0 ? '?' : '&') + q.toString();
+}
+// @34 pkt 4: strefa wody — łazienka (tekst Darka dosłownie), kuchnia: ściana nad zlewem i przy blacie (DOMYŚLNE – do potwierdzenia),
+// „W kilku pomieszczeniach” → oba (DOMYŚLNE). Bez nowego pytania; przy każdym przycisku kalkulatora gliny (płyty i tynk).
+const STREFA_WODY = {
+  'Łazienka': 'Gliny nie stosujemy w strefie wody i rozprysków (natrysk, wanna, nad umywalką) – tam płytki albo tynk wapienny. Policz tylko ściany poza tą strefą.',
+  'Kuchnia': 'Gliny nie stosujemy na ścianie nad zlewem i przy blacie – tam płytki albo inna zmywalna okładzina. Policz tylko ściany poza tą strefą.'
+};
+function strefaWodyBox() {
+  const p = st.ans.pom, t = p === 'W kilku pomieszczeniach' ? [STREFA_WODY['Łazienka'], STREFA_WODY['Kuchnia']] : STREFA_WODY[p] ? [STREFA_WODY[p]] : [];
+  return t.map(x => `<p class="note" data-strefa-wody style="margin:8px 0 0"><b>Uwaga:</b> ${esc(x)}</p>`).join('');
+}
+function tynkBox() {
+  const u = tynkAdres(); if (!u) return '';
+  return `<div class="kwal" data-tynk-beta data-tynk-system="${esc(tynkKwalifikacja())}" style="margin-top:12px"><a class="btn go" data-tynk-link href="${esc(u)}" target="_blank" rel="noopener">Policz tynk dla swojej ściany</a>
+      <p class="note" style="margin:8px 0 0">Kalkulator tynków glinianych (wersja beta) policzy materiał na Twoje metry. Ilości bez cen — wycenę przygotujemy na Twoje zapytanie.</p>${konfigAdres() ? '' : strefaWodyBox()}</div>`;
+}
+// Piwnica — STOP na stałe (decyzja Darka 25.11): w wyniku tynku wewnątrz bez przycisku kalkulatora i z jasną informacją (DOMYŚLNE – do
+// potwierdzenia: treść z pomBox „Piwnica” — wapno w piwnicy).
+function tynkPiwnicaBox() {
+  if (!tynkWewnatrz() || !KWAL_STOP_POM.includes(st.ans.pom)) return '';
+  return `<div class="box" data-tynk-stop="piwnica"><h3>Piwnica — bez tynku glinianego</h3><p>W piwnicy nie stosujemy gliny — ani tynku glinianego, ani płyt glinianych. Sprawdza się tu tynk i bielenie wapnem. Napisz do nas — dobierzemy rozwiązanie po oględzinach.</p></div>`;
+}
+// @34 pkt 8 — stały blok „Zanim zaczniesz” w każdym wyniku z rekomendacją gliny: tynk gliniany wewnątrz (poza piwnicą) albo kwalifikacja
+// płyt (kwalifikacjaPlyt). Tekst Darka 25.11; strony źródła w notatce .int. Nie zależy od TYNK_BETA (DOMYŚLNE).
+function zanimBox() {
+  const glina = (tynkWewnatrz() && !KWAL_STOP_POM.includes(st.ans.pom)) || !!kwalifikacjaPlyt();
+  if (!glina) return '';
+  return `<div class="box" data-zanim><h3>Zanim zaczniesz</h3><ul>
+        <li>Prace prowadź przy wilgotności powietrza ≤ 70 %.</li>
+        <li>Montaż płyt — w temperaturze powyżej 8 °C, tynkowanie — w temperaturze co najmniej 10 °C.</li>
+        <li>Po tynkowaniu zapewnij dobre przewietrzanie.</li>
+        <li>Tynki o grubości 15 mm i więcej — według protokołu suszenia.</li>
+        <li>Na płytach w jednym cyklu: najwyżej 10 mm na ścianie i 6 mm na suficie; do 30 mm — w warstwach, z suszeniem technicznym.</li>
+        <li>Siatka — z zakładem 10 cm, na styku różnych materiałów — 20 cm.</li></ul></div>`;
 }
 // v6.2.1 LEJEK (P1-a pkt 5) — liczniki bez danych osobowych: wysyłane WYŁĄCZNIE { typ:'lejek', zdarzenie, obszar, wersja } —
 // zdarzenie z białej listy, obszar = klucz AREAS (data-area) albo '', wersja = PRZEWODNIK_WERSJA. Zero identyfikatorów, odpowiedzi,
@@ -1609,8 +1692,8 @@ function wynik() {
     return `${plyty ? `<div class="box main" data-sucha><h3>Sucha zabudowa — płyty gliniane (samodzielny montaż)</h3>
       <p><b>Płyty gliniano-konopne Schleusner (sucha zabudowa — łatwy montaż)</b> to najprostsza droga do glinianej ściany, także bez doświadczenia w tynkowaniu. ${klej ? 'Na takie podłoże przykleja się je wprost do ściany klejem glinianym.' : WKRET_OK.includes(x.podloze) ? 'Na takie podłoże przykręca się je albo przypina zszywkami wprost, bez rusztu — wystarczy cieńsza płyta, 10 lub 14 mm.' : 'Na takim podłożu montuje się je na ruszcie z łat.'} Na wierzch idzie siatka zatopiona w kleju glinianym albo tynku drobnym i cienka warstwa tynku — razem co najmniej 3 mm. Płyt nie trzeba gruntować przed tynkiem glinianym. Płyty kładzie się na suchą ścianę — jeśli mur jest zawilgocony, najpierw trzeba usunąć przyczynę.</p>${x.metry ? `<p>Ilość: ${esc(ile(x))}.</p>` : ''}${klej ? '<p>Na suficie płyty się przykręca, nie klei.</p>' : ''}</div>` : ''}
     ${x.emisja ? CERT_BOX() : ''}
-    <div class="box main" data-tynk-druga><h3>${plyty ? 'Druga opcja: tynk gliniany' : 'Tynk gliniany do wnętrza'}</h3><p>Podłoże: ${esc(x.podloze)}.${x.podloze === 'Płyta gliniana' ? ' Na płytach gliniano-konopnych tynk wierzchni kładziemy po zatopieniu siatki w kleju glinianym lub tynku drobnym — razem co najmniej 3 mm.' : ''}</p><ul>${prod}</ul></div>
-      ${x.podloze !== 'Płyta gliniana' ? audyt('Ocena starego tynku i podłoża przed nową warstwą.') : ''}`;
+    <div class="box main" data-tynk-druga><h3>${plyty ? 'Druga opcja: tynk gliniany' : 'Tynk gliniany do wnętrza'}</h3><p>Podłoże: ${esc(x.podloze)}.${x.podloze === 'Płyta gliniana' ? ' Na płytach gliniano-konopnych tynk wierzchni kładziemy po zatopieniu siatki w kleju glinianym lub tynku drobnym — razem co najmniej 3 mm.' : ''}</p><ul>${prod}</ul>${tynkBox()}</div>
+      ${tynkPiwnicaBox()}${x.podloze !== 'Płyta gliniana' ? audyt('Ocena starego tynku i podłoża przed nową warstwą.') : ''}`;
   }
   if (a === 'plesn') {
     const szczelne = ['Płyty gipsowo-kartonowe', 'Styropian lub wełna mineralna pod tynkiem', 'Farba lateksowa lub akrylowa', 'Tapeta'].includes(x.powl);
@@ -2167,8 +2250,15 @@ function menuGrupa(g) {
 // Pusty POLITYKA_URL (MVP dziś) → mailto:kontakt@reduks.pl z tematem „Zapytanie PORADNIK <kod pocztowy>” (bez kodu: „Zapytanie PORADNIK”)
 // i treścią wg K-MAIL (KOORDYNACJA.md; kontrakt treści = komentarz w PORADNIK_LEADY.js, wzór blok e-mail konfiguratora @31):
 // 1. linia kodLinia(K-KOD) z KOD_ZAPYTANIA.js (o = TEMATY.kod — obszar z listy agenta), == PROBLEM == („<o> · — · <kraina>, <kod>”,
-// „Temat: <nazwa nowego obszaru>”, „Co chcesz wiedzieć: <aspekt>”, „Ocena: —”, „Czego nie wiemy: —”), == MATERIAŁ == bez pozycji
-// (nic nie policzono), == KONTAKT == (Imię, Telefon, Uwagi / zdjęcia, K-ZGODA: zgoda marketingowa A3 domyślnie NIE, data, wersja klauzuli).
+// „Temat: <nazwa nowego obszaru>”, „Co chcesz wiedzieć: <aspekt>”, „Ocena: —”, „Czego nie wiemy: —”), == KONTAKT == (Imię, Telefon,
+// Uwagi / zdjęcia, K-ZGODA: zgoda marketingowa A3 domyślnie NIE, data, wersja klauzuli).
+// v6.5 (@34 pkt 5b): BEZ sekcji == MATERIAŁ == (Przewodnik nie liczy ilości — liczy serwer z KOD); zostają temat, KOD z wyborami,
+// PROBLEM z odpowiedziami i KONTAKT. Parser agenta (ldParsujTresc_) bez sekcji MATERIAŁ: t.poz = [], t.m2 = null → bez flag „różnica”.
+// v6.5 (@34 pkt 5c): pole „Telefon (opcjonalnie)” w bloku e-mail — wartość tylko w pamięci strony, dopisywana do linii „Telefon: …”
+// w KONTAKT (poza KOD); strona niczego nie zapisuje ani nie wysyła. Tekst A2 nad polem.
+// v6.5 (@33 pkt 3): kontekst z adresu (KONFIG_Z_ADRESU, SPRAWA_Z_ADRESU, ROZ_Z_ADRESU) — w KOD (s, m2, g + odpowiedzi „konfig”,
+// „sprawa”, „rozwiazanie”) i jako pierwsze linie PROBLEM (te same wartości — parser dopasowuje je do KOD, zero flag rozbieżności).
+// v6.5 (@33 pkt 4): zgoda A3 i telefon zerowane przy „Nowe zapytanie” i przy zmianie obszaru (kontaktZeruj).
 // Zero cen, zero danych osobowych (kontakt klient wpisuje sam w swojej poczcie). Adres mailto w całości ≤ TEM_MAIL.MAX_HREF; przy
 // przekroczeniu linie odpowiedzi w tekście pomijane od końca (w KOD zostają), KOD nigdy nie skracany. Ustawiony POLITYKA_URL →
 // przycisk prowadzi do formularza kontaktu (ten sam formularz i POST co w obszarach; obszar = TEMATY.kod, odpowiedzi = temat i aspekt).
@@ -2206,6 +2296,18 @@ const formularzDostepny = () => typeof POLITYKA_URL === 'string' && !!POLITYKA_U
 const kontaktMailem = () => typeof POLITYKA_URL === 'string' && !formularzDostepny();
 // zgoda A3 (K-ZGODA) — jedna na sesję strony, domyślnie NIE; data = chwila zaznaczenia (bez zgody — chwila wygenerowania treści)
 let zgodaA3 = { tak: false, czas: null };
+let telMail = '';   // @34 pkt 5c — tylko pamięć strony (bez localStorage, bez wysyłki); trafia wyłącznie do treści maila
+const telOczysc = v => String(v == null ? '' : v).replace(/[^0-9+()\- ]/g, '').replace(/\s+/g, ' ').trim().slice(0, 20);
+function kontaktZeruj() { zgodaA3 = { tak: false, czas: null }; telMail = ''; }
+// @33 pkt 3 — kontekst z adresu: [id, pytanie, odpowiedź] na początku odpowiedzi (KOD.a i PROBLEM), s/m2/g w KOD.
+function kontekstOdp(obszarowe) {
+  const o = [];
+  if (KONFIG_Z_ADRESU) o.push(['konfig', 'Z konfiguratora', KONFIG_OPIS[KONFIG_Z_ADRESU.system] + (KONFIG_Z_ADRESU.podloze ? ' (' + KONFIG_PODLOZE_OPIS[KONFIG_Z_ADRESU.podloze] + ')' : '') +
+    ', ' + String(KONFIG_Z_ADRESU.m2).replace('.', ',') + ' m², płyta ' + KONFIG_Z_ADRESU.grubosc + ' mm']);
+  if (SPRAWA_Z_ADRESU) o.push(['sprawa', 'Numer sprawy', SPRAWA_Z_ADRESU]);
+  if (obszarowe && rozObszarPasuje()) o.push(['rozwiazanie', 'Wariant z karty rozwiązań', ROZ_Z_ADRESU.id + ' ' + ROZ_Z_ADRESU.wersja + (ROZ_Z_ADRESU.m2 ? ', ' + String(ROZ_Z_ADRESU.m2).replace('.', ',') + ' m²' : '')]);
+  return o;
+}
 const pytanieMail = t => String(t).replace(/:/g, ' –').slice(0, 150);   // parser: „<pytanie>: <odpowiedź>”, pytanie bez „:”
 /**
  * Treść zapytania wg K-MAIL (kontrakt w PORADNIK_LEADY.js; wzór — blok e-mail konfiguratora @31/@32).
@@ -2216,7 +2318,9 @@ const pytanieMail = t => String(t).replace(/:/g, ' –').slice(0, 150);   // par
 function zapytanieMail(z) {
   const kp = /^\d{2}-\d{3}$/.test(String(loc.kod || '')) ? String(loc.kod) : '';
   const a = {}; z.odp.forEach(x => { a[x[0]] = x[2]; });
-  const obiekt = { v: 1, t: z.t, o: z.o, d: z.d || '', kr: loc.region || '', kp: kp, a: a, s: null, m2: null, poz: [], oc: z.oc === undefined ? null : z.oc, nw: z.nw || [], wer: PRZEWODNIK_WERSJA };
+  const kf = KONFIG_Z_ADRESU;
+  const obiekt = { v: 1, t: z.t, o: z.o, d: z.d || '', kr: loc.region || '', kp: kp, a: a, s: kf ? kf.system : null, m2: kf ? kf.m2 : null, poz: [], oc: z.oc === undefined ? null : z.oc, nw: z.nw || [], wer: PRZEWODNIK_WERSJA };
+  if (kf) obiekt.g = kf.grubosc;
   const zg = { tak: !!zgodaA3.tak, data: dataZgody(zgodaA3.tak && zgodaA3.czas ? zgodaA3.czas : new Date()) };
   const temat = 'Zapytanie PORADNIK' + (z.t === 'b2b' ? ' B2B' : '') + (kp ? ' ' + kp : '');
   const zloz = n => {
@@ -2227,8 +2331,7 @@ function zapytanieMail(z) {
     z.odp.slice(0, n).forEach(x => L.push(x[1] + ': ' + x[2]));
     L.push('Ocena: ' + (z.oc === null || z.oc === undefined ? '—' : z.oc));
     L.push('Czego nie wiemy: ' + ((z.nw || []).length ? z.nw.join('; ') : '—')); L.push('');
-    L.push('== MATERIAŁ =='); L.push('');
-    L.push('== KONTAKT =='); L.push('Imię:'); L.push('Telefon:'); L.push('Uwagi / zdjęcia w załączniku:');
+    L.push('== KONTAKT =='); L.push('Imię:'); L.push('Telefon:' + (telMail ? ' ' + telMail : '')); L.push('Uwagi / zdjęcia w załączniku:');
     L.push('Zgoda marketingowa: ' + (zg.tak ? 'TAK' : 'NIE')); L.push('Data zgody: ' + zg.data); L.push('Wersja klauzuli: ' + TEM_MAIL.A3_WERSJA);
     return L.join('\n');
   };
@@ -2238,10 +2341,10 @@ function zapytanieMail(z) {
   return { temat: temat, tresc: tresc, pelna: pelna, href: href(tresc), obiekt: obiekt };
 }
 /** Nowy obszar (TEMATY): obszar KOD z listy agenta, odpowiedzi „Temat” i „Co chcesz wiedzieć”. */
-function temZapytanie() { const T = TEMATY[tem.k]; return zapytanieMail({ t: 'inwestor', o: T.kod, d: '', odp: temOdpowiedzi(), oc: null, nw: [] }); }
+function temZapytanie() { const T = TEMATY[tem.k]; return zapytanieMail({ t: 'inwestor', o: T.kod, d: '', odp: kontekstOdp(false).concat(temOdpowiedzi()), oc: null, nw: [] }); }
 /** Obszar z wynikiem: wszystkie odpowiedzi ścieżki w kolejności ekranów (pole wyboru — „tak”, m² — liczba), ocena audytu, braki. */
 function obszarZapytanie() {
-  const a = AREAS[st.area], hurt = st.area === 'hurt', odp = [];
+  const a = AREAS[st.area], hurt = st.area === 'hurt', odp = kontekstOdp(true);
   qsOf(a).forEach(q => [[q.id, q.t], q.chk ? [q.chk.id, q.chk.label] : null, q.num ? [q.num.id, q.num.label] : null].forEach(p => {
     if (!p) return; const v = st.ans[p[0]]; if (v === undefined || v === '' || v === false || v === null) return;
     odp.push([p[0], pytanieMail(p[1]), v === true ? 'tak' : String(v)]);
@@ -2250,10 +2353,12 @@ function obszarZapytanie() {
   return zapytanieMail({ t: hurt ? 'b2b' : 'inwestor', o: st.area, d: hurt ? '' : (st.ans.dom || ''), odp: odp, oc: o ? o.poziom : null, nw: hurt ? [] : brakiDane() });
 }
 const aktualneZapytanie = () => (st.area && !st.temat ? obszarZapytanie() : temZapytanie());
+function mailOdswiez() { const a = document.getElementById('tem-mail'); if (a) a.setAttribute('href', aktualneZapytanie().href); }
 function mailZgoda(tak) {
   zgodaA3 = { tak: !!tak, czas: tak ? new Date() : null };
-  const a = document.getElementById('tem-mail'); if (a) a.setAttribute('href', aktualneZapytanie().href);
+  mailOdswiez();
 }
+function mailTelefon(v) { telMail = telOczysc(v); mailOdswiez(); }
 function mailKopiuj() {
   const z = aktualneZapytanie(), stan = document.getElementById('tem-stan'), pole = document.getElementById('tem-tresc');
   const pokaz = () => { if (stan) stan.textContent = 'Nie udało się skopiować — zaznacz treść w polu poniżej i wklej ją do wiadomości na kontakt@reduks.pl.'; if (pole) { pole.value = z.pelna; pole.hidden = false; } };
@@ -2261,9 +2366,11 @@ function mailKopiuj() {
 }
 /** Blok e-mail (bez formularza): adres tekstem, zgoda A3, informacja A2, mailto, „Kopiuj treść zapytania”, pole z treścią (zapas). */
 function mailBlok(z, opis, przycisk) {
-  return `<div class="box tem-mail" data-tem-mail><p style="margin:0">${opis} Adres: <b>${esc(TEM_MAIL.ADRES)}</b>. Temat i najważniejsze informacje są już wpisane — dopisz imię, telefon i, jeśli możesz, zdjęcia.</p>
-        <label class="chk" style="margin-top:12px"><input type="checkbox" id="tem-zgoda"${zgodaA3.tak ? ' checked' : ''}> ${esc(TEM_MAIL.A3)}</label>
+  return `<div class="box tem-mail" data-tem-mail><p style="margin:0">${opis} Adres: <b>${esc(TEM_MAIL.ADRES)}</b>. Temat i najważniejsze informacje są już wpisane — dopisz imię i, jeśli możesz, zdjęcia.</p>
         <p class="note" data-tem-a2>${esc(TEM_MAIL.A2)}${opPolityka() ? `<a target="_top" href="${esc(opPolityka())}">${esc(TEM_MAIL.A2_LINK)}</a>` : esc(TEM_MAIL.A2_LINK)}.</p>
+        <label class="f" data-tem-tel style="margin-top:12px">Telefon (opcjonalnie)<input type="tel" id="tem-tel" inputmode="tel" autocomplete="tel" maxlength="20" value="${esc(telMail)}"></label>
+        <p class="note" style="margin:4px 0 0">Numer dopiszemy do treści wiadomości — strona go nie zapisuje.</p>
+        <label class="chk" style="margin-top:12px"><input type="checkbox" id="tem-zgoda"${zgodaA3.tak ? ' checked' : ''}> ${esc(TEM_MAIL.A3)}</label>
         <div class="nav"><a class="btn go" id="tem-mail" target="_top" href="${esc(z.href)}">${przycisk}</a><button class="btn" type="button" data-act="temkopiuj">Kopiuj treść zapytania</button></div>
         <p class="note" id="tem-stan" aria-live="polite"></p><textarea id="tem-tresc" class="tem-tresc" readonly hidden aria-label="Treść zapytania"></textarea></div>`;
 }
@@ -2356,7 +2463,7 @@ function renderWidok() {
     return;
   }
   if (st.step === qsOf(a).length + 1) {
-    v.innerHTML = `<h2>Co proponujemy</h2>${konfigBox()}<p class="lead">Na podstawie Twoich odpowiedzi.</p><div class="res">${bezpBox()}${regionBox()}${ocenaAudytu() || ''}${statusBox()}${wynik()}${rozBox()}${pomBox()}${stareBox()}${pilnoscBox()}${brakiBox()}</div>
+    v.innerHTML = `<h2>Co proponujemy</h2>${konfigBox()}<p class="lead">Na podstawie Twoich odpowiedzi.</p><div class="res">${bezpBox()}${regionBox()}${ocenaAudytu() || ''}${statusBox()}${wynik()}${zanimBox()}${rozBox()}${pomBox()}${stareBox()}${pilnoscBox()}${brakiBox()}</div>
       <div class="nav"><button class="btn" type="button" data-act="back">Wstecz</button><button class="btn go" type="button" data-act="next">Zapytaj o wycenę lub audyt</button></div>`;
     return;
   }
@@ -2376,7 +2483,9 @@ function poKodzie() {
   obszarZAdresuUzyty = true; grupa = GRUPA_OBSZARU[OBSZAR_Z_ADRESU] || null; pod = POD_OBSZARU[OBSZAR_Z_ADRESU] || null; tem = null;
   st = { area: OBSZAR_Z_ADRESU, step: 1, ans: {}, sent: null };
 }
+document.addEventListener('input', e => { if (e.target && e.target.id === 'tem-tel') mailTelefon(e.target.value); });
 document.addEventListener('change', e => { if (e.target && e.target.id === 'tem-zgoda') { mailZgoda(e.target.checked); return; }
+  if (e.target && e.target.id === 'tem-tel') { mailTelefon(e.target.value); return; }
   const c = e.target.closest('[data-chk]'); if (c) st.ans[c.dataset.chk] = c.checked;
   const n = e.target.closest('[data-num]'); if (n) { const v = parseFloat(String(n.value).replace(',', '.'));
     // v5.2: przedział ustawiony przez pole liczby oznaczamy flagą _metryZPola — tylko taki usuwamy,
@@ -2407,12 +2516,12 @@ document.addEventListener('click', e => {
     return; }
   if (b.dataset.fixregion) { domZapomnij(); loc.region = b.dataset.fixregion; loc.spr = null; loc.kodDone = true; poKodzie(); render(); return; }
   if (b.dataset.region) { domZapomnij(); loc.region = b.dataset.region; render(); return; }
-  if (b.dataset.area) { if (b.dataset.area === 'hurt') { grupa = null; pod = null; } tem = null; st = { area: b.dataset.area, step: 1, ans: {}, sent: null }; render(); return; }
-  if (b.dataset.wejscie) { const w = WEJSCIA[b.dataset.wejscie]; tem = null; st = { area: w.obszar, step: w.krok, ans: Object.assign({}, w.ans), sent: null }; render(); return; }
+  if (b.dataset.area) { if (b.dataset.area === 'hurt') { grupa = null; pod = null; } tem = null; kontaktZeruj(); st = { area: b.dataset.area, step: 1, ans: {}, sent: null }; render(); return; }
+  if (b.dataset.wejscie) { const w = WEJSCIA[b.dataset.wejscie]; tem = null; kontaktZeruj(); st = { area: w.obszar, step: w.krok, ans: Object.assign({}, w.ans), sent: null }; render(); return; }
   if (b.dataset.grupaStart) { autoStop(); grupa = b.dataset.grupaStart; pod = null; tem = null; render(); return; }
   // v6.4: nowy obszar bez gotowej odpowiedzi → „Co chcesz wiedzieć?” (SPEC KROK 3) albo od razu „Opisz problem – odpowiemy”
   if (b.dataset.temat) { autoStop(); const k = b.dataset.temat; grupa = GRUPA_TEMATU[k] || grupa; pod = POD_TEMATU[k] || null;
-    tem = { k: k, krok: TEMATY[k].k3 ? 'pytanie' : 'opisz', aspekt: '', zgoda: false, zgodaCzas: null }; render(); return; }
+    kontaktZeruj(); tem = { k: k, krok: TEMATY[k].k3 ? 'pytanie' : 'opisz', aspekt: '', zgoda: false, zgodaCzas: null }; render(); return; }
   if (b.dataset.aspekt) { autoStop(); if (tem) { tem.aspekt = b.dataset.aspekt; tem.krok = 'opisz'; KROK_NAPRZOD = true; } render(); return; }
   if ((b.dataset.ans || b.dataset.act === 'next') && Date.now() < AUTO.blokadaDo) return;   // K23c.2: drugie tapnięcie po automacie
   if (b.dataset.ans) { const q = qsOf(AREAS[st.area])[st.step - 1]; if ((q.id === 'miejsce' || (st.area === 'tynk' && q.id === 'cel')) && st.ans[q.id] !== b.dataset.ans) st.ans = st.ans.stare ? { stare: true } : {}; st.ans[q.id] = b.dataset.ans; if (DOM_IDS.includes(q.id)) domZapamietaj(q.id, b.dataset.ans); if (q.id === 'metry') delete st.ans._metryZPola; render(); poWyborze(q, b.dataset.ans); return; }
@@ -2427,7 +2536,7 @@ document.addEventListener('click', e => {
   if (act === 'temform') { temFormularz(); return; }
   if (act === 'temkopiuj') { mailKopiuj(); return; }
   if (act === 'back') { st.step--; if (st.step <= 0) st = { area: null, step: 0, ans: {}, sent: null }; render(); }
-  if (act === 'reset') { st = { area: null, step: 0, ans: {}, sent: null }; grupa = null; pod = null; tem = null; domZapomnij(); render(); }
+  if (act === 'reset') { st = { area: null, step: 0, ans: {}, sent: null }; grupa = null; pod = null; tem = null; domZapomnij(); kontaktZeruj(); render(); }
   if (act === 'locback') { loc.region = null; loc.spr = null; render(); }
   if (act === 'kodback') { loc.kodDone = false; render(); }
   if (act === 'kodskip') { domZapomnij(); loc.kod = null; loc.pow = []; loc.spr = null; loc.kodDone = true; poKodzie(); render(); }
