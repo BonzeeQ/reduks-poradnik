@@ -118,6 +118,31 @@ pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-rad
 .chip{font:600 14px "Source Sans 3",sans-serif;min-height:44px;padding:var(--s2) 14px;border-radius:99px;border:1.5px solid var(--och);background:var(--pan);color:var(--ink);cursor:pointer;text-align:left}
 .gr-w{margin:var(--s3) 0 var(--s2);font-weight:600}
 .menu-linki{display:flex;flex-wrap:wrap;gap:var(--s1) var(--s4);margin-top:12px}
+.menu-linki[hidden]{display:none}
+/* v6.4 MENU v3: otwarta grupa — tylko ona (≤ 10 opcji na krok); podlista obszaru SPEC jak kafel; nowe obszary z piktogramem */
+.grupy.otwarta>.gr:not([open]){display:none}
+.opts>.pod{flex:0 0 calc((100% - (var(--kafle) - 1) * var(--s2)) / var(--kafle));border:1.5px solid var(--line);border-radius:12px;background:var(--bg)}
+.opts>.pod[open]{flex-basis:100%;border-color:var(--och)}
+.pod summary{display:block;list-style:none;padding:12px var(--s3) 12px 12px;min-height:64px;cursor:pointer;border-radius:11px}
+.gr .pod summary{display:block;height:auto;background:none;padding:12px var(--s3) 12px 12px}
+.gr .pod[open] summary{background:var(--ochs)}
+@media(max-width:599px){.opt-ik{flex-direction:column;gap:4px}}
+.pod summary::-webkit-details-marker{display:none}
+.pod summary b{display:block;font-size:15px;line-height:1.35}
+.pod summary span{display:block;color:var(--mut);font-size:13.5px;line-height:1.4;margin-top:2px}
+.pod[open] summary{background:var(--ochs)}
+.pod summary:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.pod>.opts{padding:var(--s1) 12px 12px}
+.opt-ik{display:flex;gap:10px;align-items:flex-start}
+.opt-ik>span{display:block;color:inherit;margin-top:0}
+.opt-ik .ik{width:24px;height:24px}
+.tem-nagl{display:flex;gap:12px;align-items:flex-start;margin:0 0 var(--s2)}
+.tem-nagl .lead{margin:0}
+.tem-mail{margin-top:var(--s3)}
+.tem-mail .nav{margin-top:12px}
+.tem-tresc{width:100%;min-height:160px;margin-top:8px;font:13px/1.4 ui-monospace,monospace}
+/* po .opt-ik (display:flex) — ukrycie rodzeństwa otwartej podlisty / części Polski wygrywa też w silnikach liczących kolejność */
+.pod-otw>.opts>:not(.pod[open]),.opts.pod-otw>:not(.pod[open]){display:none}
 .lnk{background:none;border:0;padding:0;min-height:44px;font:inherit;font-size:15px;color:var(--sky);text-decoration:underline;cursor:pointer;text-align:left}
 @media(prefers-reduced-motion:no-preference){.hl{transition:opacity .35s,fill .35s}}
 </style>
@@ -174,10 +199,170 @@ pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-rad
   </section>
 </main>
 
+<script id="kod-zapytania">
+/*KOD_ZAPYTANIA.js — START (kopia 1:1 wstawiana przez build_public.py; nie edytować tutaj)*/
+var KOD_WERSJA = 1;
+var KOD_POLA_ = ['v', 't', 'o', 'd', 'kr', 'kp', 'a', 's', 'm2', 'poz', 'oc', 'nw', 'wer', 'g', 'zb', 'fp'];
+var KOD_GRUBOSCI_ = [10, 14, 22, 25];
+
+/** Grubość płyty z KOD: 10|14|22|25 (liczba albo tekst cyfr) albo null; inna wartość → undefined (pole pominięte). */
+function kodGrubosc_(g) {
+  if (g === null) return null;
+  var n = (typeof g === 'number' || (typeof g === 'string' && /^\s*\d{2}\s*$/.test(g))) ? Number(g) : NaN;
+  return KOD_GRUBOSCI_.indexOf(n) >= 0 ? n : undefined;
+}
+var KOD_B64_ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+/** Tekst → bajty UTF-8 (pary zastępcze → 4 bajty; samotny surogat → U+FFFD). */
+function kodUtf8_(s) {
+  var b = [];
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charCodeAt(i);
+    if (c >= 0xD800 && c <= 0xDBFF && i + 1 < s.length) {
+      var d = s.charCodeAt(i + 1);
+      if (d >= 0xDC00 && d <= 0xDFFF) { c = 0x10000 + ((c - 0xD800) << 10) + (d - 0xDC00); i++; }
+      else c = 0xFFFD;
+    } else if (c >= 0xD800 && c <= 0xDFFF) c = 0xFFFD;
+    if (c < 0x80) b.push(c);
+    else if (c < 0x800) b.push(0xC0 | (c >> 6), 0x80 | (c & 63));
+    else if (c < 0x10000) b.push(0xE0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+    else b.push(0xF0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
+  }
+  return b;
+}
+
+/** Bajty UTF-8 → tekst; null, gdy sekwencja niepełna lub błędna (np. ucięty znak wielobajtowy). */
+function kodZUtf8_(b) {
+  var out = '';
+  for (var i = 0; i < b.length;) {
+    var c = b[i], n = c < 0x80 ? 0 : (c >> 5) === 6 ? 1 : (c >> 4) === 14 ? 2 : (c >> 3) === 30 ? 3 : -1;
+    if (n < 0 || i + n > b.length - 1) return null;
+    var cp = n === 0 ? c : c & (n === 1 ? 31 : n === 2 ? 15 : 7);
+    for (var k = 1; k <= n; k++) {
+      var x = b[i + k];
+      if (x === undefined || (x >> 6) !== 2) return null;
+      cp = (cp << 6) | (x & 63);
+    }
+    i += n + 1;
+    if (cp >= 0x10000) { cp -= 0x10000; out += String.fromCharCode(0xD800 + (cp >> 10), 0xDC00 + (cp & 1023)); }
+    else out += String.fromCharCode(cp);
+  }
+  return out;
+}
+
+function kodB64Zakoduj_(b) {
+  var s = '';
+  for (var i = 0; i < b.length; i += 3) {
+    var n = (b[i] << 16) | ((b[i + 1] || 0) << 8) | (b[i + 2] || 0);
+    s += KOD_B64_.charAt((n >> 18) & 63) + KOD_B64_.charAt((n >> 12) & 63);
+    if (i + 1 < b.length) s += KOD_B64_.charAt((n >> 6) & 63);
+    if (i + 2 < b.length) s += KOD_B64_.charAt(n & 63);
+  }
+  return s;
+}
+
+/** base64url → bajty; null przy znaku spoza alfabetu albo długości ≡ 1 (mod 4) — taki ciąg na pewno jest ucięty. */
+function kodB64Odkoduj_(s) {
+  if (s.length % 4 === 1) return null;
+  var b = [];
+  for (var i = 0; i < s.length; i += 4) {
+    var n = 0, ile = Math.min(4, s.length - i);
+    for (var k = 0; k < 4; k++) {
+      var v = k < ile ? KOD_B64_.indexOf(s.charAt(i + k)) : 0;
+      if (v < 0) return null;
+      n = (n << 6) | v;
+    }
+    b.push((n >> 16) & 255);
+    if (ile > 2) b.push((n >> 8) & 255);
+    if (ile > 3) b.push(n & 255);
+  }
+  return b;
+}
+
+/** Obiekt zapytania tylko z polami K-KOD (v zawsze = KOD_WERSJA). */
+function kodOczysc_(o) {
+  var w = { v: KOD_WERSJA };
+  if (!o || typeof o !== 'object') return w;
+  for (var i = 1; i < KOD_POLA_.length; i++) {
+    var k = KOD_POLA_[i];
+    if (o[k] === undefined) continue;
+    if (k === 'g') { var g = kodGrubosc_(o.g); if (g !== undefined) w.g = g; continue; }
+    if (k === 'zb') { if (o.zb === 'tasma' || o.zb === 'siatka') w.zb = o.zb; continue; }
+    if (k === 'fp') { var fp = (o.fp === 1 || o.fp === true || o.fp === '1') ? 1 : (o.fp === 0 || o.fp === false || o.fp === '0') ? 0 : undefined; if (fp !== undefined) w.fp = fp; continue; }
+    w[k] = o[k];
+  }
+  return w;
+}
+
+var kodZakoduj = function (obiekt) {
+  return 'v' + KOD_WERSJA + '|' + kodB64Zakoduj_(kodUtf8_(JSON.stringify(kodOczysc_(obiekt))));
+};
+
+var kodLinia = function (obiekt) { return 'KOD: ' + kodZakoduj(obiekt); };
+
+/** Surowy kod z tekstu: { kod } albo null. Kolejne linie dołączane tylko, gdy w całości są znakami base64url. */
+function kodZnajdz_(tekst) {
+  var linie = String(tekst === null || tekst === undefined ? '' : tekst).replace(/\r/g, '').split('\n');
+  for (var i = 0; i < linie.length; i++) {
+    var l = linie[i].replace(/^[\s>]*/, '');
+    var m = /^KOD\s*:\s*(.*)$/i.exec(l);
+    if (!m) continue;
+    var kod = m[1].replace(/\s+/g, '');
+    var kont = [];
+    for (var j = i + 1; j < linie.length; j++) {
+      var n = linie[j].replace(/^[\s>]*/, '').replace(/\s+$/, '');
+      if (!n || !/^[A-Za-z0-9_-]+$/.test(n)) break;
+      kont.push(n);
+    }
+    return { kod: kod, kontynuacje: kont };
+  }
+  return null;
+}
+
+/** Próba odczytu jednego ciągu „vN|…”. */
+function kodProba_(kod) {
+  var m = /^v(\d+)\|([A-Za-z0-9_-]*)$/.exec(kod);
+  if (!m) {
+    var p = /^v(\d+)\|([A-Za-z0-9_-]*)/.exec(kod);
+    if (!p) return { ok: false, wersja: null, dane: null, blad: 'uszkodzony' };
+    m = p;   // śmieci po kodzie w tej samej linii — liczy się część base64url
+  }
+  var wersja = Number(m[1]);
+  if (wersja !== KOD_WERSJA) return { ok: false, wersja: wersja, dane: null, blad: 'nieznana wersja' };
+  if (!m[2]) return { ok: false, wersja: wersja, dane: null, blad: 'przycięty' };
+  var b = kodB64Odkoduj_(m[2]);
+  if (!b) return { ok: false, wersja: wersja, dane: null, blad: 'przycięty' };
+  var t = kodZUtf8_(b);
+  if (t === null) return { ok: false, wersja: wersja, dane: null, blad: 'przycięty' };
+  var dane;
+  try { dane = JSON.parse(t); }
+  catch (e) { return { ok: false, wersja: wersja, dane: null, blad: /^\s*\{/.test(t) ? 'przycięty' : 'uszkodzony' }; }
+  if (!dane || typeof dane !== 'object' || Array.isArray(dane)) return { ok: false, wersja: wersja, dane: null, blad: 'uszkodzony' };
+  return { ok: true, wersja: wersja, dane: kodOczysc_(dane), blad: null };
+}
+
+var kodOdkoduj = function (tekst) {
+  var z = kodZnajdz_(tekst);
+  if (!z) return { ok: false, wersja: null, dane: null, blad: 'brak KOD' };
+  // najdłuższa poprawna wersja: kod + wszystkie linie-kontynuacje, potem z coraz mniejszą ich liczbą
+  var pierwszy = null;
+  for (var n = z.kontynuacje.length; n >= 0; n--) {
+    var r = kodProba_(z.kod + z.kontynuacje.slice(0, n).join(''));
+    if (r.ok) return r;
+    if (!pierwszy || (pierwszy.blad === 'uszkodzony' && r.blad !== 'uszkodzony')) pierwszy = r;
+  }
+  return pierwszy;
+};
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { KOD_WERSJA: KOD_WERSJA, kodZakoduj: kodZakoduj, kodOdkoduj: kodOdkoduj, kodLinia: kodLinia };
+}
+/*KOD_ZAPYTANIA.js — KONIEC*/
+</script>
 <script>
 {
 // Wersja Przewodnika — zapisywana w każdym rekordzie zgłoszenia (WWD pkt 21: wynik wie, wg jakiej wersji reguł powstał).
-const PRZEWODNIK_WERSJA = 'v6.2.1-2026-11-25';
+const PRZEWODNIK_WERSJA = 'v6.4-2026-11-25';
 // Link do karty „do rozmowy z urzędem” (MC_USTAWIENIA → KARTA_URZAD_URL; wstawia build_public.py). Puste = link ukryty.
 const KARTA_URZAD_URL = "https://bonzeeq.github.io/reduks-poradnik/karta-koncepcji.pdf";
 // Rozwiązania do remontu: adres strony z kartami wariantów, obok Przewodnika (4. argument build_public.py). Puste = linki ukryte.
@@ -482,16 +667,22 @@ const AREAS = {
     ] }
 };
 
-// v6.3 (program v2, FAZA 2b.2 — SPEC grupowania menu, WERSJA 2 + WNIOSKI, decyzje Darka 24.11): pierwsze menu = 4 grupy wg etapów
-// procesu (kolejność grup stała). Grupa to wyłącznie nawigacja: identyfikatory obszarów (data-area), pytania, klucze odpowiedzi,
-// wynik i ekrany opinii (opWidok: cały ekran grup to nadal 'start_obszar', OP.EKRANY_STALE w hubie bez zmian) — bez zmian.
-// Każdy obszar jest na liście dokładnie jednej grupy (o). Kolejność w grupie wg Trends + FB_PYTANIA (raport K, decyzje Darka 24.11):
-// „Naprawiam usterki” — Drewno pierwsze; „Kupuję albo oceniam dom” — Zabytek przed Kupnem; „Wykańczam wnętrza” — płyty gliniane
-// pierwsze (zasada, nie popularność). Obszary bez miejsca w SPEC (ogłoszenie, mur, dach, strop — dodane po SPEC v1) przydzielone
-// wg tematu: ogłoszenie → zakup, mur i dach → usterki, strop → ocieplenie (W4: strop/strych to najczęstszy temat ocieplenia).
+// v6.4 MENU v3 (SPEC menu v3 — Dziennik, część „AKTUALIZACJA 24.11 12:30 — BAZA ADMINA 1624”;
+// arkusz GŁÓWNY 1624 pytań, kolumny grupa / obszar). 5 grup = DOMYŚLNE Darka – do potwierdzenia
+// (SPEC „DO DECYZJI DARKA” a). Krok 1 — grupa (5), krok 2 — obszar SPEC (≤ 10 w grupie), krok 3 — opcje obszaru; KAŻDY krok ≤ 10 opcji
+// (test_menu.js liczy widoczne opcje na każdym ekranie). Grupa to wyłącznie nawigacja: identyfikatory obszarów (data-area), pytania,
+// klucze odpowiedzi, wynik, kwalifikacja płyt i lejek — bez zmian względem v6.2.1. Ekrany menu i „Opisz problem” = opWidok 'start_obszar'
+// (OP.EKRANY_STALE w hubie bez zmian).
+// Pozycja grupy (m): { a } — istniejący obszar (klucz AREAS); { w } — skrót do istniejącego obszaru z ustawionymi odpowiedziami (WEJSCIA);
+// { p } — obszar SPEC, który w Przewodniku ma kilka gotowych ścieżek (PODY: podlista ≤ 10); { t } — nowy obszar SPEC BEZ gotowej
+// odpowiedzi (TEMATY) → ekran „Opisz problem – odpowiemy” (mailto albo formularz). Każdy obszar AREAS (poza hurt) dokładnie raz w menu.
+// Kolejność — DOMYŚLNE – do potwierdzenia: istniejące obszary w kolejności v6.3 (decyzje Darka 24.11 wg Trends i FB_PYTANIA: Drewno
+// pierwsze, płyty gliniane pierwsze), nowe obszary za nimi wg liczby pytań w arkuszu 1624; „Od czego zacząć” pierwsze w grupie 1 (cel
+// linku „Nie wiem, od czego zacząć”); Instalacje i Prawo (SPEC: INDYWIDUALNIE, skierowanie) na końcu swoich grup. Strop przechodzi do
+// grupy 2 (SPEC: „Strop i belki”), Podłoga do grupy 4 („Podłogi i schody”), Zabytek do grupy 5 („Zabytek i konserwator”).
 // Wejścia (w): skróty do ISTNIEJĄCYCH obszarów z ustawionymi odpowiedziami (bez nowej logiki) — chipy miejsc ocieplenia (W4),
-// „Naprawiam wcześniejszy remont” (W2: Wilgoć → cokół, Ocieplenie → już ocieplona, Tynk → gładź gipsowa, Strop → folia)
-// i „Sucha zabudowa — płyty gliniane” (tynk · nowy · wewnątrz, FAZA 2a.2). Wejście: { obszar, krok (pierwszy pokazany), ans }.
+// „Naprawa wcześniejszego remontu” (W2: Wilgoć → cokół, Ocieplenie → już ocieplona, Tynk → gładź gipsowa, Strop → folia),
+// „Sucha zabudowa — płyty gliniane” (tynk · nowy · wewnątrz, FAZA 2a.2) i wilgoć w cokole (v6.4). Wejście: { obszar, krok (pierwszy pokazany), ans }.
 const WEJSCIA = {
   ociepl_strop: { t: 'Strop / strych', obszar: 'ocieplenie', krok: 2, ans: { miejsce: 'Strop' } },
   ociepl_dach: { t: 'Dach / poddasze', obszar: 'ocieplenie', krok: 2, ans: { miejsce: 'Dach między krokwiami' } },
@@ -501,33 +692,99 @@ const WEJSCIA = {
   remont_styropian: { t: 'Styropian na ścianie', obszar: 'ocieplenie', krok: 2, ans: { miejsce: 'Ściana od zewnątrz', juz: 'Tak, styropianem' } },
   remont_gips: { t: 'Gładź gipsowa lub farba akrylowa na ścianie', obszar: 'tynk', krok: 2, ans: { cel: 'Zdjąć gładź gipsową lub farbę' } },
   remont_folia: { t: 'Folia na stropie, pod deskami', obszar: 'strop', krok: 1, ans: { objaw: 'Pod deskami leży folia' } },
-  sucha: { t: 'Sucha zabudowa — płyty gliniane', s: 'łatwy montaż, także bez doświadczenia w tynkowaniu', obszar: 'tynk', krok: 3, ans: { cel: 'Nowy tynk', gdzie: 'Wewnątrz' } }
+  sucha: { t: 'Sucha zabudowa — płyty gliniane', s: 'łatwy montaż, także bez doświadczenia w tynkowaniu', obszar: 'tynk', krok: 3, ans: { cel: 'Nowy tynk', gdzie: 'Wewnątrz' } },
+  // v6.4: obszar SPEC „Fundament, piwnica, cokół, odwodnienie” — wilgoć w cokole i piwnicy ma gotową ścieżkę (Zawilgocone ściany)
+  fund_wilgoc: { t: 'Wilgoć w cokole i w piwnicy', s: 'zawilgocony dół ścian, odpadający tynk, sole', obszar: 'wilgoc', krok: 1, ans: {} }
 };
-// Piktogramy grup (SPEC): klucz + lupa · kropla + pęknięcie · dom z falą ciepła · paca.
+// Piktogramy (zasada zero-wiedzy): grupy — klucz + lupa · kropla + pęknięcie · dom z falą ciepła · paca · dokument z pieczątką;
+// nowe obszary (TEMATY) — każdy własny znak (SVG 24×24, kontur).
 const IKONY = {
   klucz: '<circle cx="10" cy="10" r="5.5"/><path d="M14 14l7 7M17.5 17.5l2-2"/><path d="M8 10h4"/>',
   kropla: '<path d="M8 3c3 4 5 6.5 5 9a5 5 0 0 1-10 0c0-2.5 2-5 5-9z"/><path d="M17 3l-2 5 3 2-2 5 2 6"/>',
   dom: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M9 17c1-1.5 2-1.5 3 0s2 1.5 3 0"/><path d="M9 14c1-1.5 2-1.5 3 0s2 1.5 3 0"/>',
-  paca: '<path d="M3 15h14l3-4H6z"/><path d="M11 11V6a2 2 0 0 1 2-2h3"/><path d="M4 19h16"/>'
+  paca: '<path d="M3 15h14l3-4H6z"/><path d="M11 11V6a2 2 0 0 1 2-2h3"/><path d="M4 19h16"/>',
+  pieczatka: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 11h7M9 14h5"/><circle cx="15" cy="18" r="2"/>',
+  kolejnosc: '<path d="M4 6l1.5 1.5L8 5M4 12l1.5 1.5L8 11M4 18l1.5 1.5L8 17"/><path d="M11 6h9M11 12h9M11 18h9"/>',
+  historia: '<path d="M4 5a2 2 0 0 1 2-2h12v15H6a2 2 0 0 0-2 2z"/><path d="M4 20a2 2 0 0 0 2 1h12v-3"/><path d="M8 7h6M8 10h6"/>',
+  fachowcy: '<path d="M5 14a7 7 0 0 1 14 0z"/><path d="M12 7v3M3 14h18"/><path d="M8 18h8"/>',
+  fundament: '<path d="M3 21h18"/><path d="M4 17h7v4H4zM13 17h7v4h-7zM8 13h8v4H8z"/><path d="M12 3v7"/>',
+  konstrukcja: '<path d="M4 4h16v16H4z"/><path d="M4 4l16 16M20 4L4 20M12 4v16"/>',
+  bezpieczenstwo: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',
+  instalacje: '<path d="M9 3v5M15 3v5"/><path d="M6 8h12v3a6 6 0 0 1-12 0z"/><path d="M12 17v4"/>',
+  remont: '<path d="M4 8l8-4 8 4-8 4z"/><path d="M4 12l8 4 8-4M4 16l8 4 8-4"/><path d="M17 2l4 4M21 2l-4 4"/>',
+  wentylacja: '<path d="M3 8h11a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h7"/>',
+  pomieszczenia: '<path d="M5 21V4h10v17"/><path d="M15 6h4v15"/><path d="M3 21h18"/><circle cx="12" cy="13" r=".8"/>',
+  kuchnia: '<path d="M4 11h16"/><path d="M5 11v5a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-5"/><path d="M9 4c0 2 2 2 2 4M14 4c0 2 2 2 2 4"/>',
+  lazienka: '<path d="M3 12h18v2a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M6 12V5a2 2 0 0 1 4 0"/><path d="M7 19l-1 2M17 19l1 2"/>',
+  koszty: '<path d="M6 3h12v18H6z"/><path d="M9 6h6v3H9z"/><path d="M9 13h.5M12 13h.5M15 13h.5M9 16.5h.5M12 16.5h.5M15 16.5h.5"/>',
+  prawo: '<path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-3 6a3 3 0 0 0 6 0zM19 7l-3 6a3 3 0 0 0 6 0z"/>',
+  dotacje: '<path d="M4 10h16v4H4z"/><path d="M6 14v7h12v-7M12 10v11"/><path d="M12 10c-2-4-6-4-6-1s6 1 6 1zM12 10c2-4 6-4 6-1s-6 1-6 1z"/>',
+  zgloszenie: '<path d="M9 13V9a3 3 0 1 1 6 0v4"/><path d="M5 13h14v3H5z"/><path d="M4 20h16"/>',
+  dokumenty: '<path d="M3 6h7l2 2h9v11H3z"/><path d="M7 13h10M7 16h6"/>'
+};
+// v6.4 — nowe obszary SPEC bez gotowej odpowiedzi w Przewodniku (SPEC: „obszar bez odpowiedzi = zapytanie e-mailem, nie pusta strona”;
+// bank odpowiedzi RAG-2 jeszcze nie istnieje). name = nazwa obszaru z arkusza 1624 (sens bez zmian), short = jedna linia opisu,
+// ik = piktogram, hl = podświetlenie na grafice domu, kod = obszar do KOD i nagłówka PROBLEM — wyłącznie z listy agenta poczty @31
+// (LD.OBSZARY w PORADNIK_LEADY.js: data-area + 'konfig'): najbliższy istniejący obszar z tej samej grupy; nazwa nowego obszaru idzie
+// w treści jako odpowiedź na „Temat” (agent parsuje bez flagi „obszar spoza listy”). DOMYŚLNE – do potwierdzenia: kod dla obszarów
+// bez bliskiego odpowiednika (Instalacje → pekniecia, Bezpieczeństwo → dach, grupa 5 → zabytek). k3 = krok „Co chcesz wiedzieć?”
+// (SPEC KROK 3: tylko obszary elementów domu). info = zdanie pod nagłówkiem „Opisz problem” (skierowanie — SPEC: Instalacje i Prawo
+// INDYWIDUALNIE, bez porady prawnej).
+const TEMATY = {
+  kolejnosc: { name: 'Od czego zacząć: kolejność prac, pory roku', short: 'co najpierw, co zimą, jak rozłożyć remont w czasie', ik: 'kolejnosc', hl: ['a-parter', 'a-pietro'], kod: 'kupno' },
+  historia: { name: 'Historia domu i archiwa', short: 'stare zdjęcia, mapy, plany, dawny wygląd domu', ik: 'historia', hl: ['a-parter', 'a-pietro'], kod: 'kupno' },
+  fachowcy: { name: 'Fachowcy czy samodzielnie', short: 'co zrobić samodzielnie, co zlecić, kogo szukać', ik: 'fachowcy', hl: ['a-sciana'], kod: 'kupno' },
+  remont_inne: { name: 'Inny materiał: pianka PUR, siding, wełna, inna folia', short: 'co zrobić, gdy taki materiał już jest na domu', ik: 'remont', hl: ['a-ocieplenie'], kod: 'wilgoc', k3: true },
+  fundament: { name: 'Fundament, cokół, odwodnienie — inne sprawy', short: 'osiadanie, drenaż, rynny, piwnica bez śladów wilgoci', ik: 'fundament', hl: ['a-wilgoc'], kod: 'wilgoc', k3: true },
+  konstrukcja: { name: 'Konstrukcja drewniana: zrąb, szachulec, przysłup', short: 'belki, słupy, wypełnienie pól, połączenia ciesielskie', ik: 'konstrukcja', hl: ['a-sciana'], kod: 'drewno', k3: true },
+  bezpieczenstwo: { name: 'Bezpieczeństwo: azbest, ołów', short: 'eternit na dachu, stare farby, bezpieczne usuwanie', ik: 'bezpieczenstwo', hl: ['a-strop'], kod: 'dach', k3: true },
+  instalacje: { name: 'Instalacje (skierowanie do specjalisty)', short: 'prąd, woda, gaz, kanalizacja, ścieki', ik: 'instalacje', hl: ['a-parter'], kod: 'pekniecia',
+    info: 'Instalacje elektryczne, gazowe i wodne projektuje i wykonuje osoba z uprawnieniami. Podpowiemy, jak pogodzić je z remontem ścian i stropów.' },
+  wentylacja: { name: 'Wentylacja (w tym radon)', short: 'wietrzenie, kratki, komin, wilgoć w powietrzu', ik: 'wentylacja', hl: ['a-parter', 'a-pietro'], kod: 'ogrzewanie', k3: true },
+  pomieszczenia: { name: 'Pozostałe pomieszczenia', short: 'sypialnia, poddasze, sień, schody, strych', ik: 'pomieszczenia', hl: ['a-tynk'], kod: 'tynk', k3: true },
+  kuchnia: { name: 'Kuchnia', short: 'ściany przy blacie, para, zapachy, wykończenie', ik: 'kuchnia', hl: ['a-tynk'], kod: 'tynk', k3: true },
+  lazienka: { name: 'Łazienka', short: 'wilgoć, ściany przy prysznicu, wentylacja', ik: 'lazienka', hl: ['a-tynk'], kod: 'tynk', k3: true },
+  koszty: { name: 'Koszty i budżet', short: 'jak zaplanować budżet, na czym nie oszczędzać', ik: 'koszty', hl: ['a-parter', 'a-pietro'], kod: 'zabytek' },
+  dotacje: { name: 'Dotacje i ulgi', short: 'programy wsparcia, ulgi, wnioski', ik: 'dotacje', hl: ['a-parter', 'a-pietro'], kod: 'zabytek' },
+  zgloszenie: { name: 'Zgłoszenie czy pozwolenie, urząd', short: 'remont, przebudowa, nadbudowa, zmiana sposobu użytkowania', ik: 'zgloszenie', hl: ['a-parter', 'a-pietro'], kod: 'zabytek' },
+  dokumenty: { name: 'Dokumenty, ekspertyzy, odbiór', short: 'projekt, opinia konstruktora, inwentaryzacja, odbiór prac', ik: 'dokumenty', hl: ['a-parter', 'a-pietro'], kod: 'zabytek' },
+  prawo: { name: 'Prawo: spadek, sąsiedzi, ubezpieczenie', short: 'skierowanie do prawnika lub ubezpieczyciela', ik: 'prawo', hl: ['a-parter', 'a-pietro'], kod: 'zabytek',
+    info: 'Nie udzielamy porad prawnych — w sprawach spadku, sąsiadów i ubezpieczenia pomoże prawnik albo ubezpieczyciel. Napisz, czego dotyczy remont, a podpowiemy, co przygotować od strony technicznej.' }
+};
+// SPEC KROK 3 — „Co chcesz wiedzieć?” (9 aspektów + „Inne pytanie”, dosłownie z SPEC; bez cen — „Ile to kosztuje” to tylko temat pytania).
+const ASPEKTY = ['Jak ocenić stan', 'Jak to naprawić krok po kroku', 'Ratować czy wymieniać', 'Jakie materiały', 'Najczęstsze błędy',
+  'Jak zabezpieczyć przed dalszym niszczeniem', 'Ile to trwa, jak zaplanować', 'Czy potrzebne zgłoszenie, pozwolenie, konserwator', 'Ile to kosztuje', 'Inne pytanie'];
+// v6.4 — obszary SPEC z kilkoma gotowymi ścieżkami (podlista: najwyżej 10 pozycji).
+const PODY = {
+  wilgoc: { name: 'Wilgoć, pleśń, grzyb', short: 'zawilgocone ściany, czarne kropki, zapach stęchlizny', m: [{ a: 'plesn' }, { a: 'wilgoc' }] },
+  sciany: { name: 'Ściany, elewacja, pęknięcia', short: 'rysy i osiadanie, spoiny, cegły, kamień, zaprawy', m: [{ a: 'pekniecia' }, { a: 'mur' }] },
+  remont: { name: 'Naprawa wcześniejszego remontu', short: 'cement, styropian, gips, folia, PUR, siding', m: [{ w: 'remont_cokol' }, { w: 'remont_styropian' }, { w: 'remont_gips' }, { w: 'remont_folia' }, { t: 'remont_inne' }] },
+  fundament: { name: 'Fundament, piwnica, cokół, odwodnienie', short: 'wilgoć w piwnicy, cokół, osiadanie, drenaż', m: [{ w: 'fund_wilgoc' }, { t: 'fundament' }] }
 };
 const GRUPY = {
-  kupuje: { name: 'Kupuję albo oceniam dom', short: 'zakup, stan techniczny, zabytek i konserwator, adaptacja budynku gospodarczego', ik: 'klucz',
+  kupuje: { name: 'Kupuję, planuję, oceniam dom', short: 'od czego zacząć, zakup, ogłoszenie, budynek gospodarczy, historia domu, fachowcy', ik: 'klucz',
     hl: ['a-parter', 'a-pietro'], legend: '<b>Ocena domu</b> — dom ogląda się od fundamentu w górę, aż po dach.',
-    o: ['zabytek', 'kupno', 'ogloszenie', 'gosp'] },
-  naprawiam: { name: 'Naprawiam usterki', short: 'zniszczone drewno, pleśń, wilgoć, pęknięcia muru, spoiny, dach', ik: 'kropla',
+    m: [{ t: 'kolejnosc' }, { a: 'kupno' }, { a: 'ogloszenie' }, { a: 'gosp' }, { t: 'historia' }, { t: 'fachowcy' }] },
+  naprawiam: { name: 'Naprawiam usterki i konstrukcję', short: 'drewno, wilgoć i pleśń, mury, dach, strop, fundament, wcześniejszy remont', ik: 'kropla',
     hl: ['a-wilgoc', 'a-sciana'], legend: '<b>Usterki</b> — najpierw szukamy przyczyny: zwykle to woda przy cokole, pod dachem albo w murze.',
-    o: ['drewno', 'plesn', 'wilgoc', 'pekniecia', 'mur', 'dach'],
-    w: { t: 'Naprawiam wcześniejszy remont (cement, styropian, gips, folia)', o: ['remont_cokol', 'remont_styropian', 'remont_gips', 'remont_folia'] } },
-  ocieplam: { name: 'Ocieplam i ogrzewam', short: 'ocieplenie (dach, strop, ściany, podłoga), okna, ogrzewanie', ik: 'dom',
+    m: [{ a: 'drewno' }, { p: 'wilgoc' }, { p: 'sciany' }, { a: 'dach' }, { a: 'strop' }, { p: 'remont' }, { p: 'fundament' }, { t: 'konstrukcja' }, { t: 'bezpieczenstwo' }, { t: 'instalacje' }] },
+  ocieplam: { name: 'Ocieplam, ogrzewam, wietrzę', short: 'ocieplenie (dach, strop, ściany, podłoga), okna, ogrzewanie, wentylacja', ik: 'dom',
     hl: ['a-ocieplenie', 'a-strop'], legend: '<b>Ciepło</b> — w starym domu najpierw ustalamy, gdzie ucieka ciepło i jak ściana wysycha.',
-    o: ['ocieplenie', 'podloga', 'strop', 'okna', 'ogrzewanie'], chipy: { ocieplenie: ['ociepl_strop', 'ociepl_dach', 'ociepl_sciana', 'ociepl_podloga'] } },
-  wykanczam: { name: 'Wykańczam wnętrza', short: 'płyty gliniane, tynki, farby — z wyliczeniem materiału', ik: 'paca',
+    m: [{ a: 'ocieplenie' }, { a: 'okna' }, { a: 'ogrzewanie' }, { t: 'wentylacja' }], chipy: { ocieplenie: ['ociepl_strop', 'ociepl_dach', 'ociepl_sciana', 'ociepl_podloga'] } },
+  wykanczam: { name: 'Wykańczam wnętrza i wybieram materiał', short: 'płyty gliniane, tynki, farby, podłogi, kuchnia, łazienka', ik: 'paca',
     hl: ['a-tynk'], legend: '<b>Wykończenie</b> to ostatnia warstwa przy ścianie, od strony pokoju.',
-    o: ['tynk'], przed: ['sucha'] }
+    m: [{ w: 'sucha' }, { a: 'tynk' }, { a: 'podloga' }, { t: 'pomieszczenia' }, { t: 'kuchnia' }, { t: 'lazienka' }] },
+  formalnosci: { name: 'Formalności, koszty, dotacje', short: 'zabytek i konserwator, koszty, dotacje, zgłoszenie, dokumenty, prawo', ik: 'pieczatka',
+    hl: ['a-parter', 'a-pietro'], legend: '<b>Formalności</b> — zanim zaczniesz prace, sprawdź, co trzeba zgłosić i skąd wziąć wsparcie.',
+    m: [{ a: 'zabytek' }, { t: 'koszty' }, { t: 'dotacje' }, { t: 'zgloszenie' }, { t: 'dokumenty' }, { t: 'prawo' }] }
 };
-// Grupa obszaru (dla głębokiego linku i powrotu) — z listy o; hurt bez grupy (link „Jestem firmą” pod grupami).
-const GRUPA_OBSZARU = {};
-Object.keys(GRUPY).forEach(g => GRUPY[g].o.forEach(k => { GRUPA_OBSZARU[k] = g; }));
+// Grupa (i podlista) obszaru, wejścia i nowego obszaru — dla głębokiego linku i powrotu „Wstecz”; hurt bez grupy (link „Jestem firmą”).
+const GRUPA_OBSZARU = {}, POD_OBSZARU = {}, GRUPA_WEJSCIA = {}, POD_WEJSCIA = {}, GRUPA_TEMATU = {}, POD_TEMATU = {};
+Object.keys(GRUPY).forEach(g => GRUPY[g].m.forEach(x => {
+  const dopisz = (y, p) => { if (y.a) { GRUPA_OBSZARU[y.a] = g; POD_OBSZARU[y.a] = p; } if (y.w) { GRUPA_WEJSCIA[y.w] = g; POD_WEJSCIA[y.w] = p; } if (y.t) { GRUPA_TEMATU[y.t] = g; POD_TEMATU[y.t] = p; } };
+  if (x.p) PODY[x.p].m.forEach(y => dopisz(y, x.p)); else dopisz(x, null);
+  ((GRUPY[g].chipy && x.a && GRUPY[g].chipy[x.a]) || []).forEach(w => { GRUPA_WEJSCIA[w] = g; POD_WEJSCIA[w] = null; });
+}));
 // Głęboki link ?obszar=<klucz z AREAS>: po krainie i kodzie pocztowym (dane do wyniku i zgłoszenia) obszar otwiera się wprost,
 // bez menu grup; „Wstecz” z obszaru wraca do jego grupy. Zły klucz → zwykłe menu.
 const OBSZAR_Z_ADRESU = (v => Object.prototype.hasOwnProperty.call(AREAS, v) ? v : '')(ADRES.get('obszar') || '');
@@ -660,6 +917,23 @@ function nowyUuid() {
 let st = { area: null, step: 0, ans: {}, sent: null };
 // v6.3: otwarta grupa menu (klucz GRUPY) — zostaje przy przejściu do obszaru, żeby „Wstecz” z obszaru wróciło do jego grupy.
 let grupa = null;
+// v6.4: otwarta podlista obszaru SPEC (klucz PODY) w otwartej grupie; nowy obszar bez gotowej odpowiedzi (TEMATY):
+// tem = { k, krok: 'pytanie' (SPEC KROK 3 „Co chcesz wiedzieć?”) | 'opisz' („Opisz problem – odpowiemy”), aspekt, zgoda, zgodaCzas }.
+let pod = null, tem = null;
+// v6.4: otwarta część Polski na ekranie krainy (klucz KRAINY_MENU).
+let makro = null;
+// v6.4 — ekran krainy: ≤ 10 opcji na krok. Części Polski (o) albo kraina wprost (r); każda kraina z REGIONY dokładnie raz (test_menu.js).
+const KRAINY_MENU = [
+  { k: 'slask', name: 'Śląsk i Sudety', o: ['Dolny Śląsk', 'Ziemia Kłodzka', 'Sudety i Karkonosze', 'Górny Śląsk i Opolszczyzna'] },
+  { k: 'luzyce', name: 'Łużyce i Ziemia Lubuska', o: ['Łużyce Górne', 'Łużyce Dolne', 'Ziemia Lubuska'] },
+  { k: 'wielkopolska', name: 'Wielkopolska i Kujawy', o: ['Wielkopolska', 'Kujawy'] },
+  { k: 'pomorze', name: 'Pomorze, Kaszuby i Żuławy', o: ['Pomorze', 'Pomorze Gdańskie', 'Kaszuby', 'Żuławy'] },
+  { k: 'polnoc', name: 'Warmia, Mazury i Podlasie', o: ['Warmia', 'Mazury', 'Podlasie i Suwalszczyzna'] },
+  { k: 'centrum', name: 'Mazowsze, Ziemia łódzka i Kielecczyzna', o: ['Mazowsze', 'Ziemia łódzka', 'Kielecczyzna'] },
+  { k: 'poludnie', name: 'Małopolska, Podhale i Podkarpacie', o: ['Małopolska', 'Podhale', 'Podkarpacie'] },
+  { r: 'Lubelszczyzna' },
+  { r: 'Inny region lub nie wiem' }
+];
 // „Jaki to dom” — odpowiedź raz na sprawę (sesja strony): { dom, dom_dol?, dom_gora?, dom_rozp? } (v6.2).
 let domPam = {};
 // Pytanie o status ochrony — raz na sprawę, w każdym obszarze poza hurtem (na końcu, jeśli obszar go nie ma).
@@ -824,7 +1098,11 @@ const KONFIG_PODLOZE = { 'Płyta drewnopochodna': 'osb', 'Deskowanie': 'deskowan
 const K23_TYNK_W78 = true;
 function konfigSystem(obszar, odp) {
   const a = arguments.length ? obszar : st.area, x = arguments.length ? (odp || {}) : st.ans;
-  if (a === 'ocieplenie' && x.miejsce === 'Ściana od wewnątrz') return KLEJ_OK.includes(x.podloze) ? 'klejenie' : WKRET_OK.includes(x.podloze) ? 'przykrecanie' : '';
+  // v6.4 — decyzja Darka 25.11 (P1 b): ściana z bala od wewnątrz → system na ruszcie (wynik już dziś: „System na ruszcie” — łaty 40×60,
+  // wełna drzewna Flex, płyta 14 lub 22 mm; bal: ocieplenie ≤ ½ grubości bala). Konfigurator @31/@32 przyjmuje system=ruszt
+  // (kfParamSystem_ — KF_ILOSCI.SYSTEMY); ruszt nie ma parametru podłoża ani grubości z adresu (bez m² → „Uzupełnij dane” po stronie @32).
+  // Tynk wapienny, gładź i pozostałe trudne podłoża — nadal bez przycisku.
+  if (a === 'ocieplenie' && x.miejsce === 'Ściana od wewnątrz') return KLEJ_OK.includes(x.podloze) ? 'klejenie' : WKRET_OK.includes(x.podloze) ? 'przykrecanie' : x.podloze === 'Bal drewniany' ? 'ruszt' : '';
   // v6.2 (FAZA 2a.2, wiersze 7–8 — zaakceptowane przez Darka 24.11): tynk · „Nowy tynk” · „Wewnątrz” — sucha zabudowa jako pierwsza opcja;
   // przycisk tylko przy podłożu jednoznacznym wg karty: tynk gliniany → klejenie, deskowanie → przykręcanie (podłoże pełne).
   // Pozostałe podłoża (mur bez tynku, tynk wapienny, gładź, bal, kamień, nie wiem) → ruszt albo oględziny → bez przycisku.
@@ -845,8 +1123,13 @@ function konfigBaza() {
 // Na zewnątrz (ocieplenie „Ściana od zewnątrz”, tynk „Na zewnątrz”) i pozostałe obszary (wilgoć, pleśń, szachulec…) konfigSystem
 // zwraca '' — bez przycisku, zostaje „Zapytaj o wycenę lub audyt” (wycena indywidualna / kontakt). Dziś na ścieżkach z konfigSystem
 // żaden STOP nie występuje (test test_kwalifikacja.js — tabela = kod); bezpiecznik działa, gdy reguły oceny się zmienią.
+// piwnica – STOP – decyzja Darka 25.11: pomieszczenie „Piwnica” (pytanie „W jakim pomieszczeniu?” — ocieplenie od wewnątrz, tynk wewnątrz
+// i każda inna ścieżka kwalifikacji) → płyty NIE kwalifikują się W OGÓLE, na stałe, niezależnie od jakiejkolwiek odpowiedzi o wilgoć.
+// Wynik bez przycisku kalkulatora → „Zapytaj o wycenę lub audyt” (kontakt / wycena indywidualna).
+const KWAL_STOP_POM = ['Piwnica'];
 function kwalifikacjaStop() {
   const o = ocenaAudytuDane(), p = pilnoscDane();
+  if (KWAL_STOP_POM.includes(st.ans.pom)) return true;   // piwnica – STOP – decyzja Darka 25.11
   return !!((o && o.poziom >= 2) || (p && p.teraz.length));
 }
 function kwalifikacjaPlyt() { const sys = konfigSystem(); return sys && !kwalifikacjaStop() ? sys : ''; }
@@ -898,7 +1181,7 @@ function lejek(zdarzenie, podpis) {
   } catch (er) { return false; }
 }
 function lejekEkran() {
-  if (!st.area || st.sent) return;
+  if (!st.area || st.sent || st.temat) return;   // v6.4: formularz nowego obszaru — bez liczników obszaru zastępczego
   lejek('wejscie', '');
   if (opWidok() === 'wynik') { const p = opPodpisWyniku(); lejek('wynik', p); lejek(kwalifikacjaPlyt() ? 'kwal_tak' : 'kwal_nie', p); }
 }
@@ -1597,7 +1880,7 @@ function formularz() {
     <label class="f full">Lista pozycji<textarea id="f-opis" placeholder="Wklej listę z pliku: nazwa, wymiar lub grubość, ilość"></textarea></label>` : (st.area === 'ogloszenie' ? `<label class="f full">Link do ogłoszenia i co Cię niepokoi<textarea id="f-opis" placeholder="Wklej link do ogłoszenia; zdjęcia możesz wysłać mailem"></textarea></label>` : `<label class="f full">Coś jeszcze o budynku?<textarea id="f-opis" placeholder="np. rok budowy, co już zrobiono, zdjęcia wyślemy mailem"></textarea></label>`)}
     ${st.area !== 'hurt' && st.ans.dom === DOM.niewiem ? `<p class="note full" data-dom-zdjecie style="margin:0">${DOM_ZDJECIE}</p>` : ''}
     ${KONFIG_Z_ADRESU ? `<p class="note full" data-konfig-wej style="margin:0">Ilości z konfiguratora: ${esc(KONFIG_OPIS[KONFIG_Z_ADRESU.system])}${KONFIG_Z_ADRESU.podloze ? ' (' + esc(KONFIG_PODLOZE_OPIS[KONFIG_Z_ADRESU.podloze]) + ')' : ''}, ${esc(String(KONFIG_Z_ADRESU.m2).replace('.', ','))} m², płyta ${esc(KONFIG_Z_ADRESU.grubosc)} mm</p>` : ''}
-    ${rozObszarPasuje() ? `<p class="note full" data-roz-wej style="margin:0">Do zapytania dołączymy wariant wybrany na karcie rozwiązań do remontu (${esc(ROZ_WEJSCIE_OPIS[ROZ_WEJSCIE[ROZ_Z_ADRESU.id.charAt(4)]] || '')}).</p>` : ''}
+    ${!st.temat && rozObszarPasuje() ? `<p class="note full" data-roz-wej style="margin:0">Do zapytania dołączymy wariant wybrany na karcie rozwiązań do remontu (${esc(ROZ_WEJSCIE_OPIS[ROZ_WEJSCIE[ROZ_Z_ADRESU.id.charAt(4)]] || '')}).</p>` : ''}
     <label class="chk full"><input type="checkbox" id="f-zgoda" required> Proszę o kontakt w sprawie tego zapytania i zgadzam się na przetwarzanie danych w tym celu.</label>
     <label class="chk full"><input type="checkbox" id="f-news"> Chcę dostawać newsletter REDUKS (nieobowiązkowe).</label>
     <p class="note full" style="margin:0">Administratorem danych jest J&amp;G Brokers Energy sp. z o.o. (marka REDUKS), Lubań. Dane wykorzystamy wyłącznie do odpowiedzi na to zapytanie, a przy zaznaczonej zgodzie — do wysyłki newslettera. Polityka prywatności zostanie opublikowana przed uruchomieniem formularza.</p>
@@ -1762,7 +2045,7 @@ document.addEventListener('change', e => {
 // skrypt rodzica przewinąłby do góry ramki i cofnął przewinięcie do wyniku. render() zwraca więc zawsze false.
 let EKRAN_KLUCZ = null, POKAZ_WYNIK = false;
 // v6.3: + otwarta grupa menu — tapnięcie kafla grupy to nowy ekran (bez przewijania), wybór obszaru z grupy też.
-const ekranKlucz = () => (st.area || '') + '|' + st.step + '|' + opWidok() + '|' + (st.area ? '' : grupa || '');
+const ekranKlucz = () => (st.area || '') + '|' + st.step + '|' + opWidok() + '|' + (st.area ? '' : (grupa || '') + '|' + (pod || '') + '|' + (tem ? tem.k + ':' + tem.krok : '') + '|' + (loc.region ? '' : makro || ''));
 // v6.2.1 P1-b (zgłoszenie Darka, NOC 24/25.11: „na iPhonie przy części opcji ekran ucieka w dół”): pomiar na 38d5171 (Chrome,
 // emulacja iPhone 390 px, test_przewijanie_wszystkie_chrome.js) — 50 tapnięć z 780 przewijało o 10–316 px, wszystkie na ekranie
 // „Spróbujmy rozpoznać dom” (długa lista z podpowiedziami regionu): następny ekran jest NIŻSZY, strona się skraca i przeglądarka sama
@@ -1788,8 +2071,13 @@ function trzymajWysokosc(h0, y0) {
     const h = v.offsetHeight; if (h >= h0) return;
     const samodzielna = window.parent === window;
     const dolNowej = v.getBoundingClientRect().top + pozycja() + h;
+    // v6.4 — decyzja Darka 25.11 (P1 c): strona bez ramki — gdy po przebudowie CAŁY nowy ekran wypada nad oknem (dół nowej treści
+    // nad górną krawędzią okna w pozycji y0; np. ostatni rząd „Spróbujmy rozpoznać dom” przy 390 px) → bez przytrzymania, przewinięcie
+    // dokładnie do nagłówka nowego ekranu (jak „Pokaż wynik”). We wszystkich pozostałych przypadkach — 0 px (jak dotąd).
+    if (samodzielna && dolNowej <= y0 + TRZYMAJ_WIDAC) return true;
     if (KROK_NAPRZOD || (samodzielna ? dolNowej > y0 + TRZYMAJ_WIDAC : h0 - h <= TRZYMAJ_MAX)) v.style.minHeight = h0 + 'px';
   } catch (er) {}
+  return false;
 }
 function zwolnijWysokosc() {
   try {
@@ -1807,8 +2095,8 @@ function renderInner() {
   const k = ekranKlucz(), nowy = k !== EKRAN_KLUCZ, pierwszy = EKRAN_KLUCZ === null;
   EKRAN_KLUCZ = k;
   const w = opWidok(), doNaglowka = nowy && !pierwszy && ((POKAZ_WYNIK && w === 'wynik') || w === 'kontakt' || w === 'przyjete'); POKAZ_WYNIK = false;
-  trzymajWysokosc(doNaglowka || pierwszy ? 0 : h0, y0); KROK_NAPRZOD = false;
-  if (doNaglowka) przewinDoNaglowka(w); else if (!pierwszy) przywrocPozycje(y0);
+  const nad = trzymajWysokosc(doNaglowka || pierwszy ? 0 : h0, y0); KROK_NAPRZOD = false;
+  if (doNaglowka || (nad && nowy && !pierwszy)) przewinDoNaglowka(w); else if (!pierwszy) przywrocPozycje(y0);
   if (nowy && !pierwszy) fokusNaglowka();
   return false;
 }
@@ -1852,31 +2140,170 @@ function poWyborze(q, odp) {
   AUTO.timer = setTimeout(() => { AUTO.timer = null;
     if (!st.sent && ekranKlucz() === k && st.ans[q.id] === odp) { AUTO.blokadaDo = Date.now() + AUTO_BLOKADA; dalej(); } }, AUTO_MS);
 }
-// v6.3 — kafel grupy: <details> (piktogram + nazwa + jedna linia opisu); w środku obszary grupy w stałej kolejności, chipy miejsc
-// ocieplenia i wejścia skrótów. Otwarta jest najwyżej jedna grupa (zmienna grupa); tapnięcie kafla = nowy ekran (klucz ekranu
-// zawiera grupę). Przyciski obszarów są w DOM także w grupie zwiniętej — atrybut data-area jak dotąd (głębokie testy i kontrakt e2e).
+// v6.3/v6.4 — kafel grupy: <details> (piktogram + nazwa + jedna linia opisu); w środku pozycje grupy (GRUPY.m) w stałej kolejności:
+// obszary, chipy miejsc ocieplenia, wejścia skrótów, podlisty (PODY, zagnieżdżone <details>) i nowe obszary (TEMATY, z piktogramem).
+// Otwarta jest najwyżej jedna grupa (zmienna grupa) i w niej najwyżej jedna podlista (pod); tapnięcie kafla = nowy ekran (klucz ekranu
+// zawiera grupę i podlistę). Przyciski obszarów są w DOM także w grupie i podliście zwiniętej — atrybut data-area jak dotąd
+// (głębokie testy i kontrakt e2e); widoczność wyłącznie przez CSS (otwarta grupa ukrywa pozostałe, otwarta podlista — resztę grupy).
 function menuWejscie(id, kl) { const w = WEJSCIA[id]; return `<button class="${kl}" type="button" data-wejscie="${id}">${w.s ? `<b>${esc(w.t)}</b><span>${esc(w.s)}</span>` : esc(w.t)}</button>`; }
+const ikona = k => `<svg class="ik" viewBox="0 0 24 24" aria-hidden="true">${IKONY[k]}</svg>`;
+function menuTemat(k) { const T = TEMATY[k]; return `<button class="opt opt-ik" type="button" data-temat="${k}">${ikona(T.ik)}<span><b>${esc(T.name)}</b><span>${esc(T.short)}</span></span></button>`; }
+function menuPozycja(x, G) {
+  if (x.a) return `<button class="opt" type="button" data-area="${x.a}"><b>${AREAS[x.a].name}</b><span>${AREAS[x.a].short}</span></button>`
+    + (G.chipy && G.chipy[x.a] ? `<div class="chipy" role="group" aria-label="${esc(AREAS[x.a].name)} — od razu wybrane miejsce">${G.chipy[x.a].map(id => menuWejscie(id, 'chip')).join('')}</div>` : '');
+  if (x.w) return menuWejscie(x.w, 'opt');
+  if (x.t) return menuTemat(x.t);
+  const P = PODY[x.p];
+  return `<details class="pod" data-pod="${x.p}"${pod === x.p ? ' open' : ''}><summary data-pod="${x.p}"><b>${esc(P.name)}</b><span>${esc(P.short)}</span></summary>
+      <div class="opts">${P.m.map(y => menuPozycja(y, G)).join('')}</div></details>`;
+}
 function menuGrupa(g) {
-  const G = GRUPY[g], otw = grupa === g;
-  const obszar = k => `<button class="opt" type="button" data-area="${k}"><b>${AREAS[k].name}</b><span>${AREAS[k].short}</span></button>`
-    + (G.chipy && G.chipy[k] ? `<div class="chipy" role="group" aria-label="${esc(AREAS[k].name)} — od razu wybrane miejsce">${G.chipy[k].map(id => menuWejscie(id, 'chip')).join('')}</div>` : '');
-  return `<details class="gr" data-grupa="${g}"${otw ? ' open' : ''}><summary data-grupa="${g}"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true">${IKONY[G.ik]}</svg><span><b>${G.name}</b><span>${G.short}</span></span></summary>
-    <div class="gr-in"><div class="opts">${(G.przed || []).map(id => menuWejscie(id, 'opt')).join('')}${G.o.map(obszar).join('')}</div>
-    ${G.w ? `<p class="gr-w">${esc(G.w.t)}</p><div class="chipy">${G.w.o.map(id => menuWejscie(id, 'chip')).join('')}</div>` : ''}</div></details>`;
+  const G = GRUPY[g], otw = grupa === g, podOtw = otw && !!pod && G.m.some(x => x.p === pod);
+  return `<details class="gr" data-grupa="${g}"${otw ? ' open' : ''}><summary data-grupa="${g}">${ikona(G.ik)}<span><b>${G.name}</b><span>${G.short}</span></span></summary>
+    <div class="gr-in${podOtw ? ' pod-otw' : ''}"><div class="opts">${G.m.map(x => menuPozycja(x, G)).join('')}</div></div></details>`;
+}
+
+// v6.4 — nowy obszar bez gotowej odpowiedzi: „Co chcesz wiedzieć?” (SPEC KROK 3, 10 opcji) → „Opisz problem – odpowiemy”.
+// Pusty POLITYKA_URL (MVP dziś) → mailto:kontakt@reduks.pl z tematem „Zapytanie PORADNIK <kod pocztowy>” (bez kodu: „Zapytanie PORADNIK”)
+// i treścią wg K-MAIL (KOORDYNACJA.md; kontrakt treści = komentarz w PORADNIK_LEADY.js, wzór blok e-mail konfiguratora @31):
+// 1. linia kodLinia(K-KOD) z KOD_ZAPYTANIA.js (o = TEMATY.kod — obszar z listy agenta), == PROBLEM == („<o> · — · <kraina>, <kod>”,
+// „Temat: <nazwa nowego obszaru>”, „Co chcesz wiedzieć: <aspekt>”, „Ocena: —”, „Czego nie wiemy: —”), == MATERIAŁ == bez pozycji
+// (nic nie policzono), == KONTAKT == (Imię, Telefon, Uwagi / zdjęcia, K-ZGODA: zgoda marketingowa A3 domyślnie NIE, data, wersja klauzuli).
+// Zero cen, zero danych osobowych (kontakt klient wpisuje sam w swojej poczcie). Adres mailto w całości ≤ TEM_MAIL.MAX_HREF; przy
+// przekroczeniu linie odpowiedzi w tekście pomijane od końca (w KOD zostają), KOD nigdy nie skracany. Ustawiony POLITYKA_URL →
+// przycisk prowadzi do formularza kontaktu (ten sam formularz i POST co w obszarach; obszar = TEMATY.kod, odpowiedzi = temat i aspekt).
+// Teksty A2 / A3 dosłownie jak w konfiguratorze @31 (K-ZGODA, Doc zgód — sekcja A).
+const TEM_MAIL = {
+  ADRES: 'kontakt@reduks.pl', MAX_HREF: 1900, A3_WERSJA: 'A3-v1',
+  A2: 'Administratorem Twoich danych jest J&G Brokers Energy sp. z o.o. (marka REDUKS), Radogoszcz 67a, 59-800 Lubań. Przetwarzamy je, aby odpowiedzieć na Twoje zapytanie i przygotować wycenę (art. 6 ust. 1 lit. b RODO). Szczegóły i Twoje prawa: ',
+  A2_LINK: 'Polityka prywatności',
+  A3: 'Chcę otrzymywać od REDUKS oferty i nowości o materiałach do renowacji — e-mailem i telefonicznie. Zgodę mogę wycofać w każdej chwili, np. pisząc na kontakt@reduks.pl.',
+  SKOP: 'Skopiowano — wklej do swojej poczty i wyślij na kontakt@reduks.pl'
+};
+/** Data i godzina w Europe/Warsaw: „DD.MM.RRRR GG:MM” (K-ZGODA) — jak dataZgody w konfiguratorze @31. */
+function dataZgody(d) {
+  try {
+    const c = {}; new Intl.DateTimeFormat('pl-PL', { timeZone: 'Europe/Warsaw', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .formatToParts(d).forEach(x => { c[x.type] = x.value; });
+    return c.day + '.' + c.month + '.' + c.year + ' ' + c.hour + ':' + c.minute;
+  } catch (er) {
+    const z = n => (n < 10 ? '0' : '') + n;
+    return z(d.getDate()) + '.' + z(d.getMonth() + 1) + '.' + d.getFullYear() + ' ' + z(d.getHours()) + ':' + z(d.getMinutes());
+  }
+}
+function temOdpowiedzi() {
+  const T = TEMATY[tem.k], o = [['temat', 'Temat', T.name]];
+  if (tem.aspekt) o.push(['aspekt', 'Co chcesz wiedzieć', tem.aspekt]);
+  return o;
+}
+const temPytania = () => { const p = { temat: 'Temat' }; if (st.ans && st.ans.aspekt) p.aspekt = 'Co chcesz wiedzieć?'; return p; };
+// v6.4 — P1 Darka 25.11 (test z telefonu): zero ślepych komunikatów. Formularz kontaktu działa tylko w wersji publicznej z ustawionym
+// POLITYKA_URL i prawdziwym ENDPOINT (formularzDostepny). Inaczej KAŻDE wejście do kontaktu — „Zapytaj o wycenę lub audyt” z wyniku,
+// „Opisz problem – odpowiemy” — otwiera blok e-mail: mailto:kontakt@reduks.pl, temat „Zapytanie PORADNIK <kod>” (hurt: „… B2B <kod>”,
+// bez kodu: „Zapytanie PORADNIK”), treść K-MAIL (zapytanieMail), adres widoczny tekstem, „Kopiuj treść zapytania” jako zapas.
+// Wersja wewnętrzna (przewodnik.html bez POLITYKA_URL): kontakt z obszaru = formularz-podgląd rekordu jak dotąd (nic nie wysyła).
+const formularzDostepny = () => typeof POLITYKA_URL === 'string' && !!POLITYKA_URL && !!konfigBaza();
+const kontaktMailem = () => typeof POLITYKA_URL === 'string' && !formularzDostepny();
+// zgoda A3 (K-ZGODA) — jedna na sesję strony, domyślnie NIE; data = chwila zaznaczenia (bez zgody — chwila wygenerowania treści)
+let zgodaA3 = { tak: false, czas: null };
+const pytanieMail = t => String(t).replace(/:/g, ' –').slice(0, 150);   // parser: „<pytanie>: <odpowiedź>”, pytanie bez „:”
+/**
+ * Treść zapytania wg K-MAIL (kontrakt w PORADNIK_LEADY.js; wzór — blok e-mail konfiguratora @31/@32).
+ * z = { t: 'inwestor'|'b2b', o: obszar z listy agenta (data-area), d: dom, odp: [[id, pytanie, odpowiedź]], oc, nw }.
+ * KOD: pełny, nigdy skracany; s / m2 / poz puste (Przewodnik nie liczy materiału — MATERIAŁ bez pozycji). Adres mailto ≤ TEM_MAIL.MAX_HREF:
+ * przy przekroczeniu linie odpowiedzi w tekście pomijane od końca (w KOD zostają wszystkie). Zwraca { temat, tresc, pelna, href, obiekt }.
+ */
+function zapytanieMail(z) {
+  const kp = /^\d{2}-\d{3}$/.test(String(loc.kod || '')) ? String(loc.kod) : '';
+  const a = {}; z.odp.forEach(x => { a[x[0]] = x[2]; });
+  const obiekt = { v: 1, t: z.t, o: z.o, d: z.d || '', kr: loc.region || '', kp: kp, a: a, s: null, m2: null, poz: [], oc: z.oc === undefined ? null : z.oc, nw: z.nw || [], wer: PRZEWODNIK_WERSJA };
+  const zg = { tak: !!zgodaA3.tak, data: dataZgody(zgodaA3.tak && zgodaA3.czas ? zgodaA3.czas : new Date()) };
+  const temat = 'Zapytanie PORADNIK' + (z.t === 'b2b' ? ' B2B' : '') + (kp ? ' ' + kp : '');
+  const zloz = n => {
+    const L = [];
+    if (typeof kodLinia === 'function') { L.push(kodLinia(obiekt)); L.push(''); }
+    L.push('== PROBLEM ==');
+    L.push(z.o + ' · ' + (z.d || '—') + ' · ' + (loc.region || '—') + (kp ? ', ' + kp : ''));
+    z.odp.slice(0, n).forEach(x => L.push(x[1] + ': ' + x[2]));
+    L.push('Ocena: ' + (z.oc === null || z.oc === undefined ? '—' : z.oc));
+    L.push('Czego nie wiemy: ' + ((z.nw || []).length ? z.nw.join('; ') : '—')); L.push('');
+    L.push('== MATERIAŁ =='); L.push('');
+    L.push('== KONTAKT =='); L.push('Imię:'); L.push('Telefon:'); L.push('Uwagi / zdjęcia w załączniku:');
+    L.push('Zgoda marketingowa: ' + (zg.tak ? 'TAK' : 'NIE')); L.push('Data zgody: ' + zg.data); L.push('Wersja klauzuli: ' + TEM_MAIL.A3_WERSJA);
+    return L.join('\n');
+  };
+  const href = t => 'mailto:' + TEM_MAIL.ADRES + '?subject=' + encodeURIComponent(temat) + '&body=' + encodeURIComponent(t);
+  const pelna = zloz(z.odp.length); let n = z.odp.length, tresc = pelna;
+  while (href(tresc).length > TEM_MAIL.MAX_HREF && n > 0) { n--; tresc = zloz(n); }
+  return { temat: temat, tresc: tresc, pelna: pelna, href: href(tresc), obiekt: obiekt };
+}
+/** Nowy obszar (TEMATY): obszar KOD z listy agenta, odpowiedzi „Temat” i „Co chcesz wiedzieć”. */
+function temZapytanie() { const T = TEMATY[tem.k]; return zapytanieMail({ t: 'inwestor', o: T.kod, d: '', odp: temOdpowiedzi(), oc: null, nw: [] }); }
+/** Obszar z wynikiem: wszystkie odpowiedzi ścieżki w kolejności ekranów (pole wyboru — „tak”, m² — liczba), ocena audytu, braki. */
+function obszarZapytanie() {
+  const a = AREAS[st.area], hurt = st.area === 'hurt', odp = [];
+  qsOf(a).forEach(q => [[q.id, q.t], q.chk ? [q.chk.id, q.chk.label] : null, q.num ? [q.num.id, q.num.label] : null].forEach(p => {
+    if (!p) return; const v = st.ans[p[0]]; if (v === undefined || v === '' || v === false || v === null) return;
+    odp.push([p[0], pytanieMail(p[1]), v === true ? 'tak' : String(v)]);
+  }));
+  const o = hurt ? null : ocenaAudytuDane();
+  return zapytanieMail({ t: hurt ? 'b2b' : 'inwestor', o: st.area, d: hurt ? '' : (st.ans.dom || ''), odp: odp, oc: o ? o.poziom : null, nw: hurt ? [] : brakiDane() });
+}
+const aktualneZapytanie = () => (st.area && !st.temat ? obszarZapytanie() : temZapytanie());
+function mailZgoda(tak) {
+  zgodaA3 = { tak: !!tak, czas: tak ? new Date() : null };
+  const a = document.getElementById('tem-mail'); if (a) a.setAttribute('href', aktualneZapytanie().href);
+}
+function mailKopiuj() {
+  const z = aktualneZapytanie(), stan = document.getElementById('tem-stan'), pole = document.getElementById('tem-tresc');
+  const pokaz = () => { if (stan) stan.textContent = 'Nie udało się skopiować — zaznacz treść w polu poniżej i wklej ją do wiadomości na kontakt@reduks.pl.'; if (pole) { pole.value = z.pelna; pole.hidden = false; } };
+  try { navigator.clipboard.writeText(z.pelna).then(() => { if (stan) stan.textContent = TEM_MAIL.SKOP; }, pokaz); } catch (er) { pokaz(); }
+}
+/** Blok e-mail (bez formularza): adres tekstem, zgoda A3, informacja A2, mailto, „Kopiuj treść zapytania”, pole z treścią (zapas). */
+function mailBlok(z, opis, przycisk) {
+  return `<div class="box tem-mail" data-tem-mail><p style="margin:0">${opis} Adres: <b>${esc(TEM_MAIL.ADRES)}</b>. Temat i najważniejsze informacje są już wpisane — dopisz imię, telefon i, jeśli możesz, zdjęcia.</p>
+        <label class="chk" style="margin-top:12px"><input type="checkbox" id="tem-zgoda"${zgodaA3.tak ? ' checked' : ''}> ${esc(TEM_MAIL.A3)}</label>
+        <p class="note" data-tem-a2>${esc(TEM_MAIL.A2)}${opPolityka() ? `<a target="_top" href="${esc(opPolityka())}">${esc(TEM_MAIL.A2_LINK)}</a>` : esc(TEM_MAIL.A2_LINK)}.</p>
+        <div class="nav"><a class="btn go" id="tem-mail" target="_top" href="${esc(z.href)}">${przycisk}</a><button class="btn" type="button" data-act="temkopiuj">Kopiuj treść zapytania</button></div>
+        <p class="note" id="tem-stan" aria-live="polite"></p><textarea id="tem-tresc" class="tem-tresc" readonly hidden aria-label="Treść zapytania"></textarea></div>`;
+}
+// Ustawiony POLITYKA_URL: formularz kontaktu (ten sam co w obszarach) — obszar zastępczy z listy agenta, odpowiedzi = temat i aspekt.
+function temFormularz() {
+  const T = TEMATY[tem.k], ans = { temat: T.name }; if (tem.aspekt) ans.aspekt = tem.aspekt;
+  st = { area: T.kod, step: 0, ans: ans, sent: null, temat: tem.k };
+  st.step = qsOf(AREAS[T.kod]).length + 2;
+  render();
+}
+function temEkran() {
+  const T = TEMATY[tem.k];
+  const nagl = `<div class="tem-nagl" data-tem="${tem.k}">${ikona(T.ik)}<p class="lead"><b>${esc(T.name)}</b>${tem.aspekt && tem.krok === 'opisz' ? ' · ' + esc(tem.aspekt) : ''}</p></div>`;
+  const wstecz = '<div class="nav"><button class="btn" type="button" data-act="temback">Wstecz</button></div>';
+  if (tem.krok === 'pytanie') return `<h2>Co chcesz wiedzieć?</h2>${nagl}
+      <div class="opts">${ASPEKTY.map(x => `<button class="opt" type="button" data-aspekt="${esc(x)}" aria-pressed="${tem.aspekt === x}"><b>${esc(x)}</b></button>`).join('')}</div>${wstecz}`;
+  const dalej = formularzDostepny()
+    ? `<div class="nav tem-form"><button class="btn go" type="button" data-act="temform">Opisz problem w formularzu</button></div>`
+    : mailBlok(temZapytanie(), 'Wyślij nam opis z własnej poczty.', 'Napisz e-mail z opisem');
+  return `<h2>Opisz problem – odpowiemy</h2>${nagl}
+    <p>Na ten temat Przewodnik nie ma jeszcze gotowej odpowiedzi. Opisz swoją sytuację — odpowiemy w ciągu 2 dni roboczych.</p>
+    ${T.info ? `<p class="note" data-tem-info>${esc(T.info)}</p>` : ''}${dalej}${wstecz}`;
 }
 function renderWidok() {
   const a = st.area ? AREAS[st.area] : null;
   const total = a ? qsOf(a).length + 2 : 1;
-  const labels = ['Region', 'Kod pocztowy', 'Problem'].concat(a ? qsOf(a).map((q, i) => 'Pytanie ' + (i + 1)).concat(['Rozwiązanie', 'Kontakt']) : []);
-  const cur = !loc.region ? 0 : !loc.kodDone ? 1 : 2 + st.step;
+  // v6.4: formularz nowego obszaru (st.temat) — kroki Region · Kod · Problem · Kontakt
+  const labels = ['Region', 'Kod pocztowy', 'Problem'].concat(st.temat ? ['Kontakt'] : a ? qsOf(a).map((q, i) => 'Pytanie ' + (i + 1)).concat(['Rozwiązanie', 'Kontakt']) : []);
+  const cur = !loc.region ? 0 : !loc.kodDone ? 1 : st.temat ? 3 : 2 + st.step;
   $('#steps').innerHTML = labels.map((l, i) => `<li class="${i === cur ? 'on' : ''}">${l}</li>`).join('');
   // v6.2: pytanie o dół / górę domu mieszanego podświetla parter albo piętro zamiast elementu obszaru.
   const qAkt = a && st.step >= 1 && st.step <= qsOf(a).length ? qsOf(a)[st.step - 1] : null, hlQ = qAkt && qAkt.hl ? qAkt.hl : '';
   // v6.3: w menu otwarta grupa podświetla swoje elementy domu (GRUPY.hl) i ma własną legendę.
-  const G = !a && grupa && loc.kodDone && !st.sent ? GRUPY[grupa] : null;
-  Object.values(AREAS).forEach(o => document.getElementById(o.hl).setAttribute('opacity', (a && o === a && !hlQ) || (G && G.hl.includes(o.hl)) ? '.9' : '0'));
-  ['a-parter', 'a-pietro'].forEach(id => { const e = document.getElementById(id); if (e) e.setAttribute('opacity', id === hlQ || (G && G.hl.includes(id)) ? '.6' : '0'); });
-  $('#legend').innerHTML = hlQ ? `<b>Zaznaczono: ${esc(qAkt.hlOpis)}.</b> ${a.legend}` : a ? a.legend : G ? G.legend : 'Wybierz problem — zaznaczymy jego miejsce w domu.';
+  // v6.4: nowy obszar (TEMATY) podświetla swoje miejsce w domu i ma własną legendę.
+  const T = !a && tem && loc.kodDone && !st.sent ? TEMATY[tem.k] : null;
+  const G = !a && !T && grupa && loc.kodDone && !st.sent ? GRUPY[grupa] : null;
+  const hlLista = T ? T.hl : G ? G.hl : [];
+  Object.values(AREAS).forEach(o => document.getElementById(o.hl).setAttribute('opacity', (a && o === a && !hlQ && !st.temat) || hlLista.includes(o.hl) ? '.9' : '0'));
+  ['a-parter', 'a-pietro'].forEach(id => { const e = document.getElementById(id); if (e) e.setAttribute('opacity', id === hlQ || hlLista.includes(id) ? '.6' : '0'); });
+  $('#legend').innerHTML = hlQ ? `<b>Zaznaczono: ${esc(qAkt.hlOpis)}.</b> ${a.legend}` : st.temat && a ? `<b>${esc(TEMATY[st.temat].name)}</b> — opisz sytuację w formularzu.` : a ? a.legend : T ? `<b>${esc(T.name)}</b> — opisz sytuację, odpowiemy e-mailem.` : G ? G.legend : 'Wybierz problem — zaznaczymy jego miejsce w domu.';
   const v = $('#view');
   if (st.sent) {
     v.innerHTML = `<h2>Dziękujemy — zapytanie przyjęte</h2><p class="lead">Odpiszemy w ciągu jednego dnia roboczego.</p>${st.sent.numer ? `<p>Numer zgłoszenia: <b>${esc(st.sent.numer)}</b></p>` : ''}
@@ -1884,8 +2311,14 @@ function renderWidok() {
     return;
   }
   if (!a && !loc.region) {
-    v.innerHTML = `<h2>Gdzie jest Twój dom?</h2><p class="lead">Wybierz krainę — w każdej budowano trochę inaczej.</p>
-      <div class="opts">${Object.entries(REGIONY).sort(([a], [b]) => a.startsWith('Inny') ? 1 : b.startsWith('Inny') ? -1 : a.localeCompare(b, 'pl')).map(([k, r]) => `<button class="opt" type="button" data-region="${esc(k)}"><b>${esc(k)}</b></button>`).join('')}</div>`;
+    // v6.4 (≤ 10 opcji na krok — także tu): 24 krainy w 7 częściach Polski + 2 pozycje wprost (KRAINY_MENU); przyciski data-region
+    // wszystkich krain zostają w DOM (testy, kontrakt), widoczna jest tylko otwarta część. DOMYŚLNE – do potwierdzenia: podział i kolejność.
+    const regBtn = k => `<button class="opt" type="button" data-region="${esc(k)}"><b>${esc(k)}</b></button>`;
+    const alf = l => l.slice().sort((x, y) => x.localeCompare(y, 'pl'));
+    v.innerHTML = `<h2>Gdzie jest Twój dom?</h2><p class="lead">Wybierz część Polski, a w niej krainę — w każdej budowano trochę inaczej.</p>
+      <div class="opts${makro ? ' pod-otw' : ''}" data-krainy>${KRAINY_MENU.map(x => x.r ? regBtn(x.r)
+        : `<details class="pod" data-makro="${x.k}"${makro === x.k ? ' open' : ''}><summary data-makro="${x.k}"><b>${esc(x.name)}</b><span>${esc(alf(x.o).join(', '))}</span></summary><div class="opts">${alf(x.o).map(regBtn).join('')}</div></details>`).join('')}</div>
+      ${makro ? '<div class="nav"><button class="btn" type="button" data-act="makroback">Wstecz</button></div>' : ''}`;
     return;
   }
   if (!a && !loc.kodDone && loc.spr) {
@@ -1901,11 +2334,14 @@ function renderWidok() {
       <div class="nav"><button class="btn" type="button" data-act="locback">Wstecz</button><button class="btn" type="button" data-act="kodskip">Pomiń</button><button class="btn go" type="button" data-act="kodok">Dalej</button></div>`;
     return;
   }
+  if (!a && tem) { v.innerHTML = temEkran(); return; }
   if (!a) {
+    // v6.4: otwarta grupa — pozostałe kafle grup i linki pod nimi ukryte (w DOM zostają: data-area dla testów i kontraktu e2e);
+    // „Wstecz” zamyka podlistę, potem grupę, potem wraca do kodu pocztowego.
     v.innerHTML = `<h2>Na jakim etapie jest remont?</h2><p class="lead">Wybierz etap, a w nim sprawę najbliższą temu, co widać w domu. Każda ścieżka to kilka krótkich pytań.</p>
       <div class="grupy${grupa ? ' otwarta' : ''}">${Object.keys(GRUPY).map(menuGrupa).join('')}</div>
-      <div class="menu-linki"><button class="lnk" type="button" data-grupa-start="kupuje">Nie wiem, od czego zacząć</button><button class="lnk" type="button" data-area="hurt">Jestem firmą — szukam dostawcy materiałów</button></div>
-      <div class="nav"><button class="btn" type="button" data-act="kodback">Wstecz</button></div>`;
+      <div class="menu-linki"${grupa ? ' hidden' : ''}><button class="lnk" type="button" data-grupa-start="kupuje">Nie wiem, od czego zacząć</button><button class="lnk" type="button" data-area="hurt">Jestem firmą — szukam dostawcy materiałów</button></div>
+      <div class="nav"><button class="btn" type="button" data-act="${pod ? 'podback' : grupa ? 'grupaback' : 'kodback'}">Wstecz</button></div>`;
     return;
   }
   const qi = st.step - 1;
@@ -1924,16 +2360,24 @@ function renderWidok() {
       <div class="nav"><button class="btn" type="button" data-act="back">Wstecz</button><button class="btn go" type="button" data-act="next">Zapytaj o wycenę lub audyt</button></div>`;
     return;
   }
+  if (kontaktMailem()) {   // v6.4 P1 Darka 25.11: bez ślepego komunikatu — mailto z kompletną treścią K-MAIL
+    const hurt = st.area === 'hurt';
+    v.innerHTML = `<h2>Jak się z Tobą skontaktować?</h2><p class="lead">${hurt ? 'Współpracę B2B wyceniamy indywidualnie. Napisz do nas — przygotujemy ofertę dla Twojej firmy.' : 'Wyślij nam zapytanie z własnej poczty — odpowiemy w ciągu 2 dni roboczych z ceną dla Ciebie albo propozycją terminu oględzin.'}</p>
+      ${mailBlok(obszarZapytanie(), hurt ? 'Wyślij nam zapytanie z poczty firmowej — listę pozycji możesz dopisać w wiadomości.' : 'Twoje odpowiedzi są już w treści wiadomości.', 'Napisz e-mail z zapytaniem')}
+      <div class="nav"><button class="btn" type="button" data-act="back">Wstecz</button></div>`;
+    return;
+  }
   v.innerHTML = `<h2>Jak się z Tobą skontaktować?</h2><p class="lead">Dostaniesz odpowiedź od Darka z REDUKS — z ceną dla Ciebie albo propozycją terminu oględzin.</p>${formularz()}`;
 }
 
 // v6.3 — głęboki link ?obszar=…: jednorazowo, po pierwszym przejściu przez kod pocztowy; grupa = grupa obszaru (powrót „Wstecz”).
 function poKodzie() {
   if (!OBSZAR_Z_ADRESU || obszarZAdresuUzyty || st.area) return;
-  obszarZAdresuUzyty = true; grupa = GRUPA_OBSZARU[OBSZAR_Z_ADRESU] || null;
+  obszarZAdresuUzyty = true; grupa = GRUPA_OBSZARU[OBSZAR_Z_ADRESU] || null; pod = POD_OBSZARU[OBSZAR_Z_ADRESU] || null; tem = null;
   st = { area: OBSZAR_Z_ADRESU, step: 1, ans: {}, sent: null };
 }
-document.addEventListener('change', e => { const c = e.target.closest('[data-chk]'); if (c) st.ans[c.dataset.chk] = c.checked;
+document.addEventListener('change', e => { if (e.target && e.target.id === 'tem-zgoda') { mailZgoda(e.target.checked); return; }
+  const c = e.target.closest('[data-chk]'); if (c) st.ans[c.dataset.chk] = c.checked;
   const n = e.target.closest('[data-num]'); if (n) { const v = parseFloat(String(n.value).replace(',', '.'));
     // v5.2: przedział ustawiony przez pole liczby oznaczamy flagą _metryZPola — tylko taki usuwamy,
     // gdy liczba jest pusta, nieliczbowa, < 1 albo > 10000; przedział kliknięty ręcznie zostaje.
@@ -1948,8 +2392,13 @@ document.addEventListener('change', e => { const c = e.target.closest('[data-chk
     render(); } });
 document.addEventListener('click', e => {
   // v6.3: kafel grupy (summary) — bez natywnego zwijania; jedna otwarta grupa, ponowne tapnięcie zwija.
+  // v6.4: kafel podlisty (summary data-pod) — jak kafel grupy: jedna otwarta, ponowne tapnięcie zwija.
+  const sk = e.target.closest('summary[data-makro]');
+  if (sk) { e.preventDefault(); autoStop(); makro = makro === sk.dataset.makro ? null : sk.dataset.makro; render(); return; }
+  const sp = e.target.closest('summary[data-pod]');
+  if (sp) { e.preventDefault(); autoStop(); pod = pod === sp.dataset.pod ? null : sp.dataset.pod; render(); return; }
   const sm = e.target.closest('summary[data-grupa]');
-  if (sm) { e.preventDefault(); autoStop(); grupa = grupa === sm.dataset.grupa ? null : sm.dataset.grupa; render(); return; }
+  if (sm) { e.preventDefault(); autoStop(); grupa = grupa === sm.dataset.grupa ? null : sm.dataset.grupa; pod = null; tem = null; render(); return; }
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.op) { autoStop(); const o = b.dataset.op;   // K23c (recenzja P2-a): opinia w 250 ms nie przenosi ekranu
     if (o === 'otworz') { op.otwarty = true; op.info = ''; op.blad = ''; op.kontekst = opKontekst(); renderOpinia(); const r = document.querySelector('[data-op-form] legend'); if (r) try { r.setAttribute('tabindex', '-1'); r.focus({ preventScroll: true }); } catch (er) {} }
@@ -1958,16 +2407,27 @@ document.addEventListener('click', e => {
     return; }
   if (b.dataset.fixregion) { domZapomnij(); loc.region = b.dataset.fixregion; loc.spr = null; loc.kodDone = true; poKodzie(); render(); return; }
   if (b.dataset.region) { domZapomnij(); loc.region = b.dataset.region; render(); return; }
-  if (b.dataset.area) { if (b.dataset.area === 'hurt') grupa = null; st = { area: b.dataset.area, step: 1, ans: {}, sent: null }; render(); return; }
-  if (b.dataset.wejscie) { const w = WEJSCIA[b.dataset.wejscie]; st = { area: w.obszar, step: w.krok, ans: Object.assign({}, w.ans), sent: null }; render(); return; }
-  if (b.dataset.grupaStart) { autoStop(); grupa = b.dataset.grupaStart; render(); return; }
+  if (b.dataset.area) { if (b.dataset.area === 'hurt') { grupa = null; pod = null; } tem = null; st = { area: b.dataset.area, step: 1, ans: {}, sent: null }; render(); return; }
+  if (b.dataset.wejscie) { const w = WEJSCIA[b.dataset.wejscie]; tem = null; st = { area: w.obszar, step: w.krok, ans: Object.assign({}, w.ans), sent: null }; render(); return; }
+  if (b.dataset.grupaStart) { autoStop(); grupa = b.dataset.grupaStart; pod = null; tem = null; render(); return; }
+  // v6.4: nowy obszar bez gotowej odpowiedzi → „Co chcesz wiedzieć?” (SPEC KROK 3) albo od razu „Opisz problem – odpowiemy”
+  if (b.dataset.temat) { autoStop(); const k = b.dataset.temat; grupa = GRUPA_TEMATU[k] || grupa; pod = POD_TEMATU[k] || null;
+    tem = { k: k, krok: TEMATY[k].k3 ? 'pytanie' : 'opisz', aspekt: '', zgoda: false, zgodaCzas: null }; render(); return; }
+  if (b.dataset.aspekt) { autoStop(); if (tem) { tem.aspekt = b.dataset.aspekt; tem.krok = 'opisz'; KROK_NAPRZOD = true; } render(); return; }
   if ((b.dataset.ans || b.dataset.act === 'next') && Date.now() < AUTO.blokadaDo) return;   // K23c.2: drugie tapnięcie po automacie
   if (b.dataset.ans) { const q = qsOf(AREAS[st.area])[st.step - 1]; if ((q.id === 'miejsce' || (st.area === 'tynk' && q.id === 'cel')) && st.ans[q.id] !== b.dataset.ans) st.ans = st.ans.stare ? { stare: true } : {}; st.ans[q.id] = b.dataset.ans; if (DOM_IDS.includes(q.id)) domZapamietaj(q.id, b.dataset.ans); if (q.id === 'metry') delete st.ans._metryZPola; render(); poWyborze(q, b.dataset.ans); return; }
   autoStop();
   const act = b.dataset.act;
   if (act === 'next') { POKAZ_WYNIK = 'pokazWynik' in b.dataset; dalej(); }
+  if (act === 'back' && st.temat) { st = { area: null, step: 0, ans: {}, sent: null }; render(); return; }   // v6.4: formularz nowego obszaru → „Opisz problem”
+  if (act === 'temback') { if (tem && tem.krok === 'opisz' && TEMATY[tem.k].k3) tem.krok = 'pytanie'; else tem = null; render(); return; }
+  if (act === 'podback') { pod = null; render(); return; }
+  if (act === 'makroback') { makro = null; render(); return; }
+  if (act === 'grupaback') { grupa = null; pod = null; render(); return; }
+  if (act === 'temform') { temFormularz(); return; }
+  if (act === 'temkopiuj') { mailKopiuj(); return; }
   if (act === 'back') { st.step--; if (st.step <= 0) st = { area: null, step: 0, ans: {}, sent: null }; render(); }
-  if (act === 'reset') { st = { area: null, step: 0, ans: {}, sent: null }; grupa = null; domZapomnij(); render(); }
+  if (act === 'reset') { st = { area: null, step: 0, ans: {}, sent: null }; grupa = null; pod = null; tem = null; domZapomnij(); render(); }
   if (act === 'locback') { loc.region = null; loc.spr = null; render(); }
   if (act === 'kodback') { loc.kodDone = false; render(); }
   if (act === 'kodskip') { domZapomnij(); loc.kod = null; loc.pow = []; loc.spr = null; loc.kodDone = true; poKodzie(); render(); }
@@ -1978,7 +2438,7 @@ document.addEventListener('click', e => {
     loc.kodDone = true; poKodzie(); render(); }
   if (act === 'kodkeep') { loc.spr = null; loc.kodDone = true; poKodzie(); render(); }
   if (act === 'kodfix') { loc.spr = null; render(); }
-  if (act === 'copy') { try { navigator.clipboard.writeText($('#rec').textContent).then(() => b.textContent = 'Skopiowano', () => b.textContent = 'Kopiowanie zablokowane'); } catch (er) { b.textContent = 'Kopiowanie zablokowane'; } }
+  if (act === 'copy') { try { navigator.clipboard.writeText($('#rec').textContent).then(() => b.textContent = 'Skopiowano', () => b.textContent = 'Nie udało się skopiować — zaznacz rekord ręcznie'); } catch (er) { b.textContent = 'Nie udało się skopiować — zaznacz rekord ręcznie'; } }
 });
 
 document.addEventListener('submit', e => {
@@ -2000,19 +2460,20 @@ document.addEventListener('submit', e => {
   if (brak.length) { err.hidden = false; err.textContent = 'Uzupełnij: ' + brak.join(', ') + '.'; return; }
   st.sent = {
     zrodlo: 'przewodnik REDUKS (prototyp)', data: new Date().toISOString().slice(0, 16).replace('T', ' '),
-    region: loc.region, kod_pocztowy: loc.kod, kod_powiaty_teryt: loc.pow, problem: AREAS[st.area].name, odpowiedzi: Object.fromEntries(Object.entries(st.ans).filter(([k]) => k.charAt(0) !== '_')),
-    obszar: st.area, wersja_przewodnika: PRZEWODNIK_WERSJA, wersja_oceny: OCENA_WERSJA, ocena_audytu: ocenaAudytuDane(), pilnosc: pilnoscLista(), braki: brakiDane(), pytania: pytaniaDane(),
-    status_ochrony: (st.area !== 'hurt' && statusKod(st.ans)) ? { kod: statusKod(st.ans), opis: st.ans.zabytek } : null,
+    region: loc.region, kod_pocztowy: loc.kod, kod_powiaty_teryt: loc.pow, problem: st.temat ? TEMATY[st.temat].name : AREAS[st.area].name, odpowiedzi: Object.fromEntries(Object.entries(st.ans).filter(([k]) => k.charAt(0) !== '_')),
+    obszar: st.area, wersja_przewodnika: PRZEWODNIK_WERSJA, wersja_oceny: OCENA_WERSJA, ocena_audytu: st.temat ? null : ocenaAudytuDane(), pilnosc: st.temat ? [] : pilnoscLista(), braki: st.temat ? [] : brakiDane(), pytania: st.temat ? temPytania() : pytaniaDane(),
+    status_ochrony: (!st.temat && st.area !== 'hurt' && statusKod(st.ans)) ? { kod: statusKod(st.ans), opis: st.ans.zabytek } : null,
     klient: { imie: g('f-imie').value.trim(), email: mail, telefon: g('f-tel').value.trim(), miejscowosc: g('f-miasto').value.trim(), opis: g('f-opis').value.trim(), firma: g('f-firma') ? g('f-firma').value.trim() : '', nip: g('f-nip') ? g('f-nip').value.trim() : '' },
     zgoda_kontakt_w_sprawie_zapytania: true, zgoda_newsletter: g('f-news').checked
   };
-  if (rozObszarPasuje()) st.sent.rozwiazanie = Object.assign({}, ROZ_Z_ADRESU);
+  if (!st.temat && rozObszarPasuje()) st.sent.rozwiazanie = Object.assign({}, ROZ_Z_ADRESU);
   if (KONFIG_Z_ADRESU) st.sent.konfigurator = Object.assign({}, KONFIG_Z_ADRESU);
   if (KONFIG_Z_ADRESU && SPRAWA_Z_ADRESU) st.sent.sprawa = SPRAWA_Z_ADRESU;
   if (st.area === 'hurt') st.sent.weryfikacja_firmy = { nip_suma_kontrolna: 'OK', rejestr: 'DO SPRAWDZENIA — CEIDG lub KRS' };
   st.sent.zrodlo = 'poradnik REDUKS (www)';
-  if (!POLITYKA_URL) { st.sent = null; err.hidden = false; err.textContent = 'Formularz chwilowo niedostępny. Napisz do nas: kontakt@reduks.pl.'; return; }
-  if (ENDPOINT.indexOf('__') === 0) { st.sent = null; err.hidden = false; err.textContent = 'Formularz jest w trybie testowym — napisz do nas: kontakt@reduks.pl.'; return; }
+  // v6.4 (P1 Darka 25.11): bez polityki albo bez prawdziwego ENDPOINT formularz nie jest pokazywany — gdyby jednak przyszedł submit,
+  // zamiast ślepego komunikatu wracamy do ekranu kontaktu, który wtedy jest blokiem e-mail (mailto z treścią K-MAIL).
+  if (!POLITYKA_URL || ENDPOINT.indexOf('__') === 0) { st.sent = null; render(); return; }
   const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Wysyłanie…';
   const dane = st.sent; st.sent = null;
   // v5.5 (kontrakt): proba_id — UUID v4 z pierwszego „Wyślij”; ten sam przy ponowieniu bez zmian, NOWY po zmianie
