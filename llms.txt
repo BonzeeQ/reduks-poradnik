@@ -1,0 +1,33 @@
+# REDUKS — Przewodnik po renowacji
+
+> Krótkie odpowiedzi na najczęstsze pytania o renowację starych domów naturalnymi materiałami: tynki gliniane i wapienne, mur pruski, wilgoć, ocieplenie, podłogi i drewno. Odpowiedzi przygotował REDUKS, Lubań.
+
+Każda strona pytania zawiera krótką odpowiedź i wskazanie, kiedy przerwać pracę i zapytać fachowca.
+
+## Przewodnik
+
+- [Przewodnik po renowacji](https://bonzeeq.github.io/reduks-poradnik/): sprawdź swój przypadek krok po kroku
+- [Wszystkie pytania](https://bonzeeq.github.io/reduks-poradnik/pytania/): lista pytań według grup
+
+## Najczęstsze pytania
+
+- [Jak wymienić niekompatybilny tynk na starym murze?](https://bonzeeq.github.io/reduks-poradnik/pytania/jak-wymienic-niekompatybilny-tynk-na-starym-murze.html): Naprawiam
+- [Jak naprawić ubytki w tynku glinianym?](https://bonzeeq.github.io/reduks-poradnik/pytania/jak-naprawic-ubytki-w-tynku-glinianym.html): Naprawiam
+- [Jaką farbę zastosować na tynku glinianym lub wapiennym?](https://bonzeeq.github.io/reduks-poradnik/pytania/jaka-farbe-zastosowac-na-tynku-glinianym-lub-wapiennym.html): Naprawiam
+- [Mur pruski: dlaczego zaprawa cementowa pęka i odchodzi od drewna?](https://bonzeeq.github.io/reduks-poradnik/pytania/mur-pruski-dlaczego-zaprawa-cementowa-peka-i-odchodzi-od-drewna.html): Naprawiam
+- [Mur pruski: jaka zaprawa do wypełnień — wapienna, hydrauliczna, trasowa?](https://bonzeeq.github.io/reduks-poradnik/pytania/mur-pruski-jaka-zaprawa-do-wypelnien.html): Naprawiam
+- [Mur pruski: stare wypełnienie z gliny — usuwać czy zostawić?](https://bonzeeq.github.io/reduks-poradnik/pytania/mur-pruski-stare-wypelnienie-z-gliny-usuwac-czy-zostawic.html): Naprawiam
+- [Jak rozpoznać i usunąć przyczynę zawilgocenia ściany?](https://bonzeeq.github.io/reduks-poradnik/pytania/jak-rozpoznac-i-usunac-przyczyne-zawilgocenia-sciany.html): Naprawiam
+- [Czy iniekcja jest odpowiednia do zawilgoconego muru?](https://bonzeeq.github.io/reduks-poradnik/pytania/czy-iniekcja-jest-odpowiednia-do-zawilgoconego-muru.html): Naprawiam
+- [Jak postępować przy pleśni, grzybie i zapachu stęchlizny?](https://bonzeeq.github.io/reduks-poradnik/pytania/jak-postepowac-przy-plesni-grzybie-i-zapachu-stechlizny.html): Naprawiam
+- [Jak uszczelnić szczeliny między balami?](https://bonzeeq.github.io/reduks-poradnik/pytania/jak-uszczelnic-szczeliny-miedzy-balami.html): Naprawiam
+- [Jak dobrać ocieplenie do starego domu?](https://bonzeeq.github.io/reduks-poradnik/pytania/jak-dobrac-ocieplenie-do-starego-domu.html): Ocieplam / ogrzewam
+- [Czy istniejące lub planowane ocieplenie EPS jest odpowiednie?](https://bonzeeq.github.io/reduks-poradnik/pytania/czy-ocieplenie-eps-jest-odpowiednie.html): Ocieplam / ogrzewam
+- [Mur pruski: jak ocieplić od wewnątrz, żeby nie było punktu rosy i pleśni?](https://bonzeeq.github.io/reduks-poradnik/pytania/mur-pruski-jak-ocieplic-od-wewnatrz.html): Ocieplam / ogrzewam
+- [Płyty z włókna drzewnego, lekka glina, konopie — co jest kapilarnie aktywne?](https://bonzeeq.github.io/reduks-poradnik/pytania/co-jest-kapilarnie-aktywne-wlokno-drzewne-lekka-glina-konopie.html): Ocieplam / ogrzewam
+- [Tynk gliniany na stary tynk wapienny — skuwać czy kłaść na niego?](https://bonzeeq.github.io/reduks-poradnik/pytania/tynk-gliniany-na-stary-tynk-wapienny-skuwac-czy-klasc-na-niego.html): Wykańczam
+- [Czy tynk gliniany pleśnieje, gdy źle wyschnie? Czy na glinę można dać pobiałkę wapienną?](https://bonzeeq.github.io/reduks-poradnik/pytania/czy-tynk-gliniany-plesnieje-gdy-zle-wyschnie.html): Wykańczam
+- [Czy płyty gliniane nadają się do wykończenia ścian?](https://bonzeeq.github.io/reduks-poradnik/pytania/czy-plyty-gliniane-nadaja-sie-do-wykonczenia-scian.html): Wykańczam
+- [Jak zamocować płyty gliniane na murze?](https://bonzeeq.github.io/reduks-poradnik/pytania/jak-zamocowac-plyty-gliniane-na-murze.html): Wykańczam
+- [Czy płyty gliniane nadają się na sufit lub skosy?](https://bonzeeq.github.io/reduks-poradnik/pytania/czy-plyty-gliniane-nadaja-sie-na-sufit-lub-skosy.html): Wykańczam
+- [Jak dobrać układ podłogi w starym budynku?](https://bonzeeq.github.io/reduks-poradnik/pytania/jak-dobrac-uklad-podlogi-w-starym-budynku.html): Wykańczam
