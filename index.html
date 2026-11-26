@@ -1961,6 +1961,7 @@ document.addEventListener('change', e => {
 });
 
 let EKRAN_KLUCZ = null, POKAZ_WYNIK = false;
+let PYT_WEJSCIE = false;
 const ekranKlucz = () => (st.area || '') + '|' + st.step + '|' + opWidok() + '|' + (st.area ? '' : (grupa || '') + '|' + (pod || '') + '|' + (tem ? tem.k + ':' + tem.krok : '') + '|' + (loc.region ? '' : makro || '')) + '|' + (faqK || '') + '|' + pytKlucz();
 const TRZYMAJ_MAX = 600;
 const TRZYMAJ_WIDAC = 0;
@@ -1993,7 +1994,7 @@ function renderInner() {
   renderWidok(); renderOpinia(); lejekEkran();
   const k = ekranKlucz(), nowy = k !== EKRAN_KLUCZ, pierwszy = EKRAN_KLUCZ === null;
   EKRAN_KLUCZ = k;
-  const w = opWidok(), doNaglowka = nowy && !pierwszy && ((POKAZ_WYNIK && w === 'wynik') || w === 'kontakt' || w === 'przyjete'); POKAZ_WYNIK = false;
+  const w = opWidok(), doNaglowka = nowy && !pierwszy && ((POKAZ_WYNIK && w === 'wynik') || w === 'kontakt' || w === 'przyjete' || PYT_WEJSCIE); POKAZ_WYNIK = false; PYT_WEJSCIE = false;
   const nad = trzymajWysokosc(doNaglowka || pierwszy ? 0 : h0, y0); KROK_NAPRZOD = false;
   if (doNaglowka || (nad && nowy && !pierwszy)) przewinDoNaglowka(w); else if (!pierwszy) przywrocPozycje(y0);
   if (nowy && !pierwszy) fokusNaglowka();
@@ -2484,7 +2485,7 @@ document.addEventListener('click', e => {
   if (b.dataset.pytPod !== undefined && pyt && pyt.g) { autoStop(); lejekFaq('podgrupa', faqSlug(b.dataset.pytPod)); pyt.p = b.dataset.pytPod; render(); return; }
   if (b.dataset.pytKarta && pyt && BANK_ID[b.dataset.pytKarta]) { autoStop(); lejekFaq('karta', b.dataset.pytKarta); pyt.k = b.dataset.pytKarta; render(); return; }
   if (b.hasAttribute('data-pyt-temat') && opWidok() === 'wynik') { autoStop(); const m = faqDopasuj(); if (!m) return;
-    pyt = { g: m[0], p: m[1] || null, k: null, w: { g: m[0], p: m[1] || null } }; lejekFaq(m[1] ? 'podgrupa' : 'grupa', faqSlug(m[1] || m[0])); render(); return; }
+    pyt = { g: m[0], p: m[1] || null, k: null, w: { g: m[0], p: m[1] || null } }; lejekFaq(m[1] ? 'podgrupa' : 'grupa', faqSlug(m[1] || m[0])); PYT_WEJSCIE = true; render(); return; }
   if (b.hasAttribute('data-wapno') && opWidok() === 'wynik') { autoStop(); st.karta = null; st.wapno = { m2: konfigM2(st.ans.m2) }; uslugi.add('mat'); dalej(); return; }
   if (b.dataset.op) { autoStop(); const o = b.dataset.op;
     if (o === 'otworz') { op.otwarty = true; op.info = ''; op.blad = ''; op.kontekst = opKontekst(); renderOpinia(); const r = document.querySelector('[data-op-form] legend'); if (r) try { r.setAttribute('tabindex', '-1'); r.focus({ preventScroll: true }); } catch (er) {} }
@@ -2505,7 +2506,7 @@ document.addEventListener('click', e => {
   const act = b.dataset.act;
   if (act === 'next') { if (opWidok() === 'wynik') { st.karta = null; st.wapno = null; } POKAZ_WYNIK = 'pokazWynik' in b.dataset; dalej(); }
   if (act === 'faqback') { faqK = null; render(); return; }
-  if (act === 'pytstart') { pyt = { g: null, p: null, k: null, w: { g: null, p: null } }; render(); return; }
+  if (act === 'pytstart') { pyt = { g: null, p: null, k: null, w: { g: null, p: null } }; PYT_WEJSCIE = true; render(); return; }
   if (act === 'pytback') { pytWstecz(); render(); return; }
   if (act === 'back' && st.temat) { st = { area: null, step: 0, ans: {}, sent: null }; render(); return; }
   if (act === 'temback') { if (tem && tem.krok === 'opisz' && TEMATY[tem.k].k3) tem.krok = 'pytanie'; else tem = null; render(); return; }
