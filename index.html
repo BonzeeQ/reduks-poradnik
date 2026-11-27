@@ -155,6 +155,23 @@ pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-rad
 .fp{margin-top:var(--s3)}
 .fp-opis ul{margin:var(--s1) 0 0;padding-left:20px}
 .fp-hp{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+
+.fp-czekaj{margin:0}
+.fp-wys{display:flex;flex-direction:column;justify-content:center;gap:6px;flex:1 1 220px;min-width:0;min-height:44px;font-weight:600}
+.fp-wys[hidden]{display:none}
+.fp-pasek{display:block;position:relative;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.fp-pasek>span{position:absolute;top:0;bottom:0;left:0;width:40%;border-radius:3px;background:var(--och)}
+@media(prefers-reduced-motion:no-preference){.fp-pasek>span{animation:fp-pasek 1.4s ease-in-out infinite}}
+@media(prefers-reduced-motion:reduce){.fp-pasek>span{width:100%;opacity:.55}}
+@keyframes fp-pasek{0%{left:-40%}100%{left:100%}}
+
+.kalk-nagl{display:inline-flex;align-items:center;min-height:44px;margin-top:var(--s3);padding:8px 14px;border:1.5px solid var(--umbt);border-radius:10px;color:var(--umbt);font-weight:600;text-decoration:none;max-width:100%;overflow-wrap:anywhere}
+.kalk-nagl[hidden]{display:none}
+.kalk-nagl:hover,.kalk-nagl:focus-visible{background:color-mix(in srgb,var(--umbt) 12%,transparent)}
+.kalk-nagl:focus-visible{outline:3px solid var(--umba);outline-offset:2px}
+.opts.kalk-start-opts{margin-bottom:var(--s3)}
+.opts.kalk-start-opts>.opt{flex:0 0 100%}   
+a.opt{text-decoration:none}
 .stopka a{color:inherit}
 .tem-mail .nav{margin-top:12px}
 .tem-tresc{width:100%;min-height:160px;margin-top:8px;font:13px/1.4 ui-monospace,monospace}
@@ -204,6 +221,7 @@ pre{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-rad
     <div>
       <h1>Co dzieje się w Twoim starym domu?</h1>
       <p>Opisz problem w kilku krokach. Sprawdzimy, jakie materiały pasują i kiedy najpierw potrzebny jest audyt.</p>
+      <a class="kalk-nagl" id="kalk-nagl" data-kalk-naglowek target="_blank" rel="noopener" hidden>Kalkulator materiału</a>
     </div>
   </div>
   <div style="height:18px"></div>
@@ -433,7 +451,7 @@ if (typeof module !== 'undefined' && module.exports) {
 <script type="application/json" id="mapa-rozw">{"tynk:zew":["ELE-01","NOC-08","GEN-02-SCI","WOD-01","NNA-08","NNA-12","NNA-13","IZO-04"],"tynk:wew:piwnica":["GEN-02-FUND","NOC-08","WIL-04","WIL-01","WIL-02","WIL-03","NOC-07","NKP-07"],"tynk:wew:plyta":["PLY-03","PLY-01","TYN-03","TYN-04","PLY-02","PLY-05","KLE-01","NWY-03"],"tynk:wew":["NWY-02","NWY-01","TYN-02","TYN-03","TYN-04","KUC-01","PLY-01","PLY-02"],"tynk:pekniecia:wapno":["NNA-08","GEN-02-SCI","NNA-10","NNA-12","NOC-02"],"tynk:pekniecia:glina":["TYN-02","NWY-06","KUC-01","NWY-02","TYN-03","TYN-04","NWY-01","NWY-03"],"tynk:plamy":["NKP-07","WIL-04","NOC-07","WIL-01","WIL-02","GEN-16","NOC-01","NWY-06"],"tynk:zdjecie:wapno":["NOC-02","NNA-08","NKP-02","NNA-13","EDU-01"],"tynk:zdjecie:glina":["TYN-04","NWY-01","NWY-06","TYN-02","KUC-01","TYN-01","TYN-03","NWY-02"],"tynk:zdjecie:inne":["TYN-04","TYN-01","NKP-02","EDU-01"],"ocieplenie:wew:piwnica":["NOC-08","NOC-03","NKP-07","IZO-01","WIL-02","GEN-02-FUND","WIL-01","IZO-03"],"ocieplenie:wew:klejenie":["KLE-01","PLY-01","PLY-02","PLY-03","PLY-05","NOC-01","NOC-03","NNA-11"],"ocieplenie:wew:przykrecanie":["PLY-01","PLY-02","PLY-05","PLY-03","KLE-01","DRW-05","NNA-11","IZO-01"],"ocieplenie:wew:ruszt":["STO-02","NNA-04","PLY-05","NOC-01","PLY-01","DRW-02","NOC-03","BHP-01"],"ocieplenie:wew:szachulec":["NOC-01","NOC-03","NNA-11","NNA-06","NNA-07","NNA-13","NNA-08","NNA-09"],"ocieplenie:wew:trudne":["NOC-01","NOC-03","NNA-11","IZO-01","NKP-07","NNA-04","NOC-04","WIL-02"],"ocieplenie:zew:szachulec":["NNA-06","NNA-07","NNA-09","NNA-08","NNA-12","NNA-10","NNA-13","NWY-02"],"ocieplenie:zew":["NOC-08","ELE-01","GEN-04-SCI","IZO-02","NKP-07","IZO-01","IZO-03","NKP-02"],"ocieplenie:dach":["NOC-08","DACH-01","GEN-02-DACH","NNA-04","IZO-01","IZO-02","IZO-03","IZO-04"],"ocieplenie:strop":["NOC-08","GEN-02-STROP","NNA-04","IZO-01","IZO-02","IZO-03","NKP-07","NNA-01"],"ocieplenie:podloga":["POD-02","NWY-09","NWY-05","POD-01","NOC-08","IZO-01","IZO-02","IZO-03"],"ocieplenie:izolacja":["NNA-01","WIL-02","NNA-02","WIL-01","WIL-03","DRW-01","NOC-04","NKP-07"],"wilgoc":["WIL-02","WIL-01","NKP-07","WOD-01","NNA-01","GEN-16","WIL-03","GEN-02-FUND"],"wilgoc:piwnica":["WIL-02","GEN-02-FUND","NKP-07","WIL-01","GEN-16","WIL-03","WOD-01","PLAN-03"],"plesn":["NOC-07","WIL-04","NOC-01","NWY-06","NWY-04","GEN-16","NKP-07","WIL-01"],"plesn:piwnica":["NOC-07","WIL-04","NKP-07","WIL-01","WIL-02","WIL-03","GEN-16","WOD-01"],"mur":["NNA-06","NNA-07","NNA-08","NOC-02","NNA-09","NNA-12","NWY-02","TYN-01"],"mur:piwnica":["WIL-02","WIL-03","GEN-02-FUND","NNA-08","NOC-08","NKP-07","NNA-13","WIL-01"],"drewno:dach":["DRW-03","DRW-04","DACH-01","NOC-08","GEN-02-DACH","WIL-04","DRW-02","POZ-01"],"drewno:sciany":["NNA-13","NNA-02","NNA-12","NNA-06","NNA-10","NNA-11","STO-02","NNA-03"],"drewno:strop":["NWY-09","NNA-12","POD-01","DRW-03","NNA-10","NNA-11","NNA-13","POD-02"],"drewno":["DRW-03","DRW-04","DRW-02","POZ-01","NNA-06","NNA-12","DRW-05","NWY-09"],"pekniecia":["NNA-06","GEN-02-SCI","MUR-01","DRW-01","WIL-03","HIS-03","NNA-01","NOC-02"],"okna":["NOC-07","STO-01","NOC-08","GEN-02-STO","NOC-01","NOC-06","NWY-10","WIL-04"],"podloga":["POD-02","NWY-09","POD-01","NWY-05","NKP-07","NNA-01"],"ogrzewanie":["INS-01","POZ-01","POD-02","ENE-01","GEN-02-OGR","GEN-16","NKP-07","NOC-07"],"strop":["GEN-02-STROP","NNA-12","NOC-02","NOC-08","DRW-02","DRW-03","DRW-04","NNA-10"],"dach":["DACH-01","NOC-08","GEN-02-DACH","DRW-02","DRW-03","DRW-04","NNA-06","NNA-12"],"gosp":["WIL-01","GEN-02-OTO","NKP-07","WIL-02","DRW-04","GEN-16","WOD-02","POD-01"],"kupno":["ZAK-02","NKP-08","ZAK-01","GEN-05","NKP-06","ELE-01","IZO-03","INS-01"],"ogloszenie":["NKP-06","ZAK-02","NKP-08","ZAK-01","GEN-05","NKP-07","DRW-02","GEN-16"],"zabytek":["DOT-01","NKP-02","GEN-19","GEN-04-INNE","GEN-17","GEN-18","FORM-01","HIS-02"]}</script>
 <script>
 {
-const PRZEWODNIK_WERSJA = 'v6.7.2-2026-11-26';
+const PRZEWODNIK_WERSJA = 'v6.7.3-2026-11-27';
 const KARTA_URZAD_URL = "https://bonzeeq.github.io/reduks-poradnik/karta-koncepcji.pdf";
 const ROZWIAZANIA_URL = '';
 const ADRES = (() => { try { return new URLSearchParams(location.search); } catch (er) { return new URLSearchParams(''); } })();
@@ -1090,6 +1108,13 @@ function konfigAdres() {
   return konfigLink(baza, q);
 }
 function konfigLink(baza, q) { return baza + (baza.indexOf('?') < 0 ? '?' : '&') + q.toString(); }
+function kalkStartAdres() { const baza = konfigBaza(); if (!baza) return ''; const q = new URLSearchParams(); q.set('app', 'konfig'); return konfigLink(baza, q); }
+function kalkStartBox() {
+  const u = kalkStartAdres(); if (!u) return '';
+  return `<div class="opts kalk-start-opts"><a class="opt" data-kalk-start href="${esc(u)}" target="_blank" rel="noopener"><b>Policz materiał na ścianę i sufit</b><span>Wiesz już, co robisz? Podaj metry, a policzymy ilości.</span></a></div>`;
+}
+function kalkNaglowek() { const a = document.getElementById('kalk-nagl'), u = kalkStartAdres(); if (!a) return; if (u) { a.setAttribute('href', u); a.hidden = false; } else { a.removeAttribute('href'); a.hidden = true; } }
+const KALK_WYNIK_TXT = 'Policz materiał dla tego rozwiązania';
 const KONFIG_POZYCJE_OPIS = {
   klejenie: 'Kalkulator płyt glinianych policzy materiał na Twoje metry: płyty, klej i tynk.',
   przykrecanie: 'Kalkulator płyt glinianych policzy materiał na Twoje metry: płyty, mocowanie i tynk.',
@@ -1097,7 +1122,7 @@ const KONFIG_POZYCJE_OPIS = {
 };
 function konfigBox() {
   const u = konfigAdres(); if (!u) return '';
-  return `<div class="box kwal" data-konfig data-kwal="tak"><a class="btn go" data-konfig-link href="${esc(u)}" target="_blank" rel="noopener">Policz materiał dla swojej ściany</a>
+  return `<div class="box kwal" data-konfig data-kwal="tak"><a class="btn go" data-konfig-link data-kalk-wynik href="${esc(u)}" target="_blank" rel="noopener">${KALK_WYNIK_TXT}</a>
       <p class="note" style="margin:8px 0 0">${KONFIG_POZYCJE_OPIS[konfigSystem()] || KONFIG_POZYCJE_OPIS.klejenie} Ilości bez cen — wycenę przygotujemy na Twoje zapytanie.</p>${strefaWodyBox()}</div>`;
 }
 const TYNK_BETA = true;
@@ -1132,8 +1157,15 @@ function strefaWodyBox() {
   const p = st.ans.pom, t = p === 'W kilku pomieszczeniach' ? [STREFA_WODY['Łazienka'], STREFA_WODY['Kuchnia']] : STREFA_WODY[p] ? [STREFA_WODY[p]] : [];
   return t.map(x => `<p class="note" data-strefa-wody style="margin:8px 0 0"><b>Uwaga:</b> ${esc(x)}</p>`).join('');
 }
+function kalkWynikBox() {
+  if (konfigAdres()) return konfigBox();
+  const u = tynkAdres(); if (!u) return '';
+  return `<div class="box kwal" data-konfig-tynk data-tynk-beta data-tynk-system="${esc(tynkKwalifikacja())}"><a class="btn go" data-tynk-link data-kalk-wynik href="${esc(u)}" target="_blank" rel="noopener">${KALK_WYNIK_TXT}</a>
+      <p class="note" style="margin:8px 0 0">Kalkulator tynków glinianych (wersja beta) policzy materiał na Twoje metry. Ilości bez cen — wycenę przygotujemy na Twoje zapytanie.</p>${strefaWodyBox()}</div>`;
+}
 function tynkBox() {
   const u = tynkAdres(); if (!u) return '';
+  if (!konfigAdres()) return '';
   return `<div class="kwal" data-tynk-beta data-tynk-system="${esc(tynkKwalifikacja())}" style="margin-top:12px"><a class="btn go" data-tynk-link href="${esc(u)}" target="_blank" rel="noopener">Policz tynk dla swojej ściany</a>
       <p class="note" style="margin:8px 0 0">Kalkulator tynków glinianych (wersja beta) policzy materiał na Twoje metry. Ilości bez cen — wycenę przygotujemy na Twoje zapytanie.</p>${konfigAdres() ? '' : strefaWodyBox()}</div>`;
 }
@@ -1162,7 +1194,7 @@ function zanimBox() {
         <li>Na płytach w jednym cyklu: najwyżej 10 mm na ścianie i 6 mm na suficie; do 30 mm — w warstwach, z suszeniem technicznym.</li>
         <li>Siatka — z zakładem 10 cm, na styku różnych materiałów — 20 cm.</li></ul></div>`;
 }
-const LEJEK_ZDARZENIA = ['wejscie', 'wynik', 'kwal_tak', 'kwal_nie'];
+const LEJEK_ZDARZENIA = ['wejscie', 'wynik', 'kwal_tak', 'kwal_nie', 'kalk_start', 'kalk_wynik', 'kalk_naglowek'];
 const LEJEK_BYLO = new Set();
 function lejekDane(zdarzenie) {
   return { typ: 'lejek', zdarzenie: zdarzenie, obszar: Object.prototype.hasOwnProperty.call(AREAS, st.area) ? st.area : '', wersja: PRZEWODNIK_WERSJA };
@@ -2046,6 +2078,7 @@ function zwolnijWysokosc() {
 try { window.addEventListener('scroll', zwolnijWysokosc, { passive: true }); } catch (er) {}
 function render() { const nowy = renderInner(); postWys(nowy); return nowy; }
 function renderInner() {
+  kalkNaglowek();
   const y0 = pozycja(), vw = document.getElementById('view'), h0 = vw ? vw.offsetHeight : 0;
   renderWidok(); renderOpinia(); lejekEkran();
   const k = ekranKlucz(), nowy = k !== EKRAN_KLUCZ, pierwszy = EKRAN_KLUCZ === null;
@@ -2191,12 +2224,15 @@ function zapytanieMail(z) {
   };
   const href = t => 'mailto:' + TEM_MAIL.ADRES + '?subject=' + encodeURIComponent(temat) + '&body=' + encodeURIComponent(t);
   const trescNr = nr => { const v = NR_ZAP_RE.test(String(nr || '')) ? String(nr) : ''; let n = z.odp.length, t = zloz(n, v); while (href(t).length > TEM_MAIL.MAX_HREF && n > 0) { n--; t = zloz(n, v); } return t; };
+  const gmail = t => 'https://mail.google.com/mail/?view=cm&fs=1&to=' + TEM_MAIL.ADRES + '&su=' + encodeURIComponent(temat) + '&body=' + encodeURIComponent(t);
+  const gmailNr = nr => { const v = NR_ZAP_RE.test(String(nr || '')) ? String(nr) : ''; let n = z.odp.length, t = zloz(n, v); while (gmail(t).length > TEM_MAIL.MAX_HREF && n > 0) { n--; t = zloz(n, v); } return gmail(t); };
+  const pelnaNr = nr => zloz(z.odp.length, NR_ZAP_RE.test(String(nr || '')) ? String(nr) : '');
   const pelna = zloz(z.odp.length, ''), tresc = trescNr('');
   const linie = [naglowek].concat(z.odp.map(x => x[1] + ': ' + x[2]));
   if (typeof d.m2 === 'number' && !z.odp.some(x => /m²/.test(x[1] + x[2]))) linie.push('Powierzchnia: ' + String(d.m2).replace('.', ',') + ' m²');
   if (us.length) linie.push('Interesuje mnie: ' + us.map(u => u[1]).join(', '));
   const ctx = z.odp.filter(x => ['konfig', 'sprawa', 'rozwiazanie'].includes(x[0])).map(x => x[1] + ': ' + x[2]);
-  return { temat: temat, tresc: tresc, pelna: pelna, href: href(tresc), hrefNr: nr => href(trescNr(nr)), trescNr: trescNr, linie: linie, ctx: ctx, obiekt: obiekt, d: d };
+  return { temat: temat, tresc: tresc, pelna: pelna, href: href(tresc), hrefNr: nr => href(trescNr(nr)), trescNr: trescNr, gmailNr: gmailNr, pelnaNr: pelnaNr, linie: linie, ctx: ctx, obiekt: obiekt, d: d };
 }
 function temZapytanie() { const T = TEMATY[tem.k], ai = { temat: Object.keys(TEMATY).indexOf(tem.k) }; if (tem.aspekt && ASPEKTY.indexOf(tem.aspekt) >= 0) ai.aspekt = ASPEKTY.indexOf(tem.aspekt);
   return zapytanieMail({ t: 'inwestor', o: T.kod, on: T.name, d: '', odp: kontekstOdp(false).concat(temOdpowiedzi()), oc: null, nw: [], ai: ai }); }
@@ -2217,6 +2253,7 @@ const aktualneZapytanie = () => (faqK && BANK_ID[faqK] ? faqZapytanie() : st.are
 function mailOdswiez() {
   const a = document.getElementById('tem-mail'), l = document.getElementById('fp-linie'); if (!a && !l) return;
   const z = aktualneZapytanie(); if (a) a.setAttribute('href', z.href); if (l) l.innerHTML = fpLinie(z);
+  const gm = document.getElementById('fp-gmail'); if (gm) gm.setAttribute('href', z.gmailNr(REF.odcisk === JSON.stringify(z.d) ? REF.nr : ''));
 }
 function mailZgoda(tak) {
   zgodaA3 = { tak: !!tak, czas: tak ? new Date() : null };
@@ -2279,6 +2316,7 @@ function mailOtworz(a) {
 const FP = { MAX: 3, OKNO_MS: 10 * 60 * 1000, CZEKAJ_MS: 30000, LIMIT_KLUCZ: 'reduks_poradnik_wysylki',
   EMAIL: /^[A-Za-z0-9.!#$%&'*+\/=?^_`{|}~-]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\.[A-Za-z]{2,24}$/,
   TEL: /^[0-9 +()\-]{6,30}$/, KOD: /^[A-HJKMNP-Z]{8}$/, ZP: /^ZP\/\d{4}\/\d{2}\/\d{1,6}$/ };
+const FP_WYS = { wysylamy: 'Wysyłamy zgłoszenie… to potrwa kilka sekund', sprawdzamy: 'Sprawdzamy, czy zgłoszenie dotarło… to potrwa kilka sekund' };
 let fpProba = { id: '', odcisk: '' }, fpWynik = null;
 function fpCzasy() {
   try { const v = JSON.parse(window.localStorage.getItem(FP.LIMIT_KLUCZ) || '[]'), t = Date.now();
@@ -2298,22 +2336,93 @@ function fpBlok(z, wstecz) {
     <p class="note full" style="margin:0" data-tem-a2>${esc(TEM_MAIL.A2)}${polLink()}.</p>
     <div class="fp-hp" aria-hidden="true"><input type="text" id="fp-hp" name="kontrola_p9z" tabindex="-1" autocomplete="off"></div>
     <p class="err full" id="fp-err" role="alert" hidden></p>
-    <div class="nav full">${wstecz || ''}<button class="btn go" type="submit" id="fp-wyslij">Wyślij zapytanie</button></div>
-    <div class="full" id="fp-zapas" hidden><p class="note" style="margin:0">Zapytanie można też wysłać z własnej poczty na <b>${esc(TEM_MAIL.ADRES)}</b> — treść jest już wpisana.</p>
-      <div class="nav"><a class="btn" id="tem-mail" data-mail-ref data-stan="fp-stan" target="_top" href="${esc(z.href)}">Napisz e-mail z zapytaniem</a></div><p class="note" id="fp-stan" aria-live="polite"></p></div>
+    <p class="note full fp-czekaj" data-fp-czekaj>Po kliknięciu „Wyślij” poczekaj ok. 10 sekund — przygotowujemy Twoje zgłoszenie.</p>
+    <div class="nav full">${wstecz || ''}<button class="btn go" type="submit" id="fp-wyslij">Wyślij zapytanie</button><div class="fp-wys" id="fp-wys" role="status" aria-live="polite" hidden><span id="fp-wys-t">${FP_WYS.wysylamy}</span><span class="fp-pasek" aria-hidden="true"><span></span></span></div></div>
+    <div class="full box fp-zapas" id="fp-zapas" data-fp-zapas hidden><p style="margin:0">Możesz też wysłać zapytanie z własnej poczty na adres <b id="fp-adres">${esc(TEM_MAIL.ADRES)}</b> — treść jest już przygotowana.</p>
+      <div class="nav"><button class="btn" type="button" data-act="fpkopadres">Kopiuj adres</button><button class="btn" type="button" data-act="fpkoptresc">Kopiuj treść zgłoszenia</button></div>
+      <div class="nav"><a class="btn" id="fp-gmail" data-fp-gmail target="_blank" rel="noopener" href="${esc(z.gmailNr(''))}">Otwórz w Gmailu</a><a class="btn" id="tem-mail" data-mail-ref data-stan="fp-stan" target="_top" href="${esc(z.href)}">Otwórz w programie pocztowym</a></div>
+      <p class="note" id="fp-stan" aria-live="polite"></p><textarea id="fp-tresc" class="tem-tresc" readonly hidden aria-label="Treść zgłoszenia"></textarea></div>
   </form>`;
 }
 function fpBlad(t, zapas) {
-  const e = document.getElementById('fp-err'), b = document.getElementById('fp-wyslij'), m = document.getElementById('fp-zapas');
-  if (e) { e.hidden = false; e.textContent = t; } if (b) { b.disabled = false; b.textContent = 'Wyślij zapytanie'; } if (m && zapas) m.hidden = false;
+  const e = document.getElementById('fp-err'), b = document.getElementById('fp-wyslij'), m = document.getElementById('fp-zapas'), ws = document.getElementById('fp-wys');
+  FP_W_TOKU = false;
+  if (e) { e.hidden = false; e.textContent = t; } if (b) { b.disabled = false; b.hidden = false; b.textContent = 'Wyślij zapytanie'; } if (ws) ws.hidden = true;
+  if (m && zapas) { m.hidden = false; fpZapasNr(); }
 }
+let FP_W_TOKU = false;
 const FP_KOM = {
   limit: 'Z tej przeglądarki wysłano już 3 zapytania w ciągu 10 minut. Spróbuj ponownie za kilka minut albo wyślij zapytanie e-mailem.',
   w_toku: 'Zapytanie jest właśnie zapisywane — spróbuj ponownie za chwilę.',
   blad: 'Nie udało się potwierdzić wysłania. Spróbuj ponownie — ponowne wysłanie nie utworzy drugiego zgłoszenia — albo wyślij zapytanie e-mailem.'
 };
+const FP_STATUS = { PO_MS: [2000, 6000], CZEKAJ_MS: 6000, ID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i };
+let fpStatusN = 0;
+function fpStatusJsonp(baza, id) {
+  return new Promise(res => {
+    let po = false, s = null, zegar = null;
+    const cb = 'fpS_' + String(++fpStatusN % 10000) + String(Math.floor(Math.random() * 100000));
+    const koniec = (o, blad) => {
+      if (po) return; po = true; if (zegar) clearTimeout(zegar);
+      window[cb] = () => {};
+      try { if (s && s.parentNode) s.parentNode.removeChild(s); } catch (er) {}
+      res({ o: o && typeof o === 'object' ? o : null, blad: !!blad });
+    };
+    try {
+      window[cb] = o => koniec(o);
+      s = document.createElement('script'); s.async = true; s.setAttribute('data-fp-status', '');
+      s.onerror = () => koniec(null, true);
+      s.src = baza + '?app=zgloszenie_status&id=' + encodeURIComponent(id) + '&cb=' + cb;
+      zegar = setTimeout(() => koniec(null), FP_STATUS.CZEKAJ_MS);
+      (document.head || document.documentElement).appendChild(s);
+    } catch (er) { koniec(null, true); }
+  });
+}
+function fpStatusFetch(baza, id) {
+  try {
+    let zegar = null;
+    const zap = fetch(baza + '?app=zgloszenie_status&id=' + encodeURIComponent(id)).then(r => r.text()).then(t => { try { return JSON.parse(t); } catch (er) { return null; } }).catch(() => null);
+    const czas = new Promise(r => { zegar = setTimeout(() => r(null), FP_STATUS.CZEKAJ_MS); });
+    return Promise.race([zap, czas]).then(o => { clearTimeout(zegar); return o; });
+  } catch (er) { return Promise.resolve(null); }
+}
+function fpStatus(id) {
+  const baza = konfigBaza();
+  if (!baza || !FP_STATUS.ID.test(String(id || ''))) return Promise.resolve(null);
+  return fpStatusJsonp(baza, id)
+    .then(r => r.o ? r.o : (r.blad && typeof fetch === 'function' ? fpStatusFetch(baza, id) : null))
+    .then(o => (o && o.ok === true && FP.ZP.test(String(o.zp || '')) ? o : null), () => null);
+}
+function fpSukces(kod, zp) {
+  FP_W_TOKU = false;
+  fpWynik = { kod: FP.KOD.test(String(kod || '')) ? String(kod) : '', zp: FP.ZP.test(String(zp || '')) ? String(zp) : '' };
+  fpProba = { id: '', odcisk: '' }; render();
+}
+function fpZapasNr() {
+  const z = aktualneZapytanie();
+  refPobierz(z).then(nr => { const gm = document.getElementById('fp-gmail'); if (gm) gm.setAttribute('href', z.gmailNr(nr)); });
+}
+const fpRefNr = z => (REF.odcisk === JSON.stringify(z.d) ? REF.nr : '');
+function fpSchowek(t) {
+  const zapas = () => { try { const x = document.createElement('textarea'); x.value = t; x.setAttribute('readonly', ''); x.style.position = 'fixed'; x.style.left = '-9999px'; document.body.appendChild(x); x.select();
+    const r = document.execCommand && document.execCommand('copy'); document.body.removeChild(x); return !!r; } catch (er) { return false; } };
+  try { return navigator.clipboard.writeText(t).then(() => true, zapas); } catch (er) { return Promise.resolve(zapas()); }
+}
+function fpKopiujAdres() {
+  const st_ = document.getElementById('fp-stan');
+  fpSchowek(TEM_MAIL.ADRES).then(r => { if (st_) st_.textContent = r ? 'Skopiowano adres: ' + TEM_MAIL.ADRES : 'Nie udało się skopiować — zaznacz adres powyżej i skopiuj go ręcznie.'; });
+}
+function fpKopiujTresc() {
+  const z = aktualneZapytanie(), t = z.pelnaNr(fpRefNr(z)), st_ = document.getElementById('fp-stan'), pole = document.getElementById('fp-tresc');
+  fpSchowek(t).then(r => {
+    if (r) { if (st_) st_.textContent = TEM_MAIL.SKOP; return; }
+    if (st_) st_.textContent = 'Nie udało się skopiować — zaznacz treść w polu poniżej i wklej ją do wiadomości na ' + TEM_MAIL.ADRES + '.';
+    if (pole) { pole.value = t; pole.hidden = false; }
+  });
+}
 const FP_POLA = { imie: 'imię', email: 'poprawny e-mail', tel: 'poprawny telefon', opis: 'krótszy opis (do 2000 znaków)', zgoda: 'zgodę na kontakt w sprawie zapytania' };
 function fpWyslij() {
+  if (FP_W_TOKU) return;
   const g = id => document.getElementById(id), w = v => String(v == null ? '' : v).trim();
   const f = { imie: w(g('fp-imie').value), email: w(g('fp-mail').value), tel: w(g('fp-tel').value), opis: String(g('fp-opis').value || ''), zgoda: !!g('fp-zgoda').checked };
   const brak = [];
@@ -2332,12 +2441,25 @@ function fpWyslij() {
   if (nowe && fpCzasy().length >= FP.MAX) { fpBlad(FP_KOM.limit, true); return; }
   if (nowe) { fpProba = { id: fpUuid(), odcisk: odcisk }; fpZapiszCzas(); }
   dane.id = fpProba.id;
-  const b = g('fp-wyslij'), e = g('fp-err'); if (b) { b.disabled = true; b.textContent = 'Wysyłanie…'; } if (e) e.hidden = true;
+  const b = g('fp-wyslij'), e = g('fp-err'), ws = g('fp-wys'), wt = g('fp-wys-t'), id = dane.id; FP_W_TOKU = true;
+  if (b) { b.disabled = true; b.textContent = 'Wysyłanie…'; b.hidden = true; } if (ws) ws.hidden = false; if (e) e.hidden = true; if (wt) wt.textContent = FP_WYS.wysylamy;
   let po = false, zegar = null;
+  const naEkranie = () => fpProba.id === id && !!document.getElementById('fp-form');
+  const status = i => setTimeout(() => {
+    if (!naEkranie()) { FP_W_TOKU = false; return; }
+    fpStatus(id).then(o => {
+      if (!naEkranie()) { FP_W_TOKU = false; return; }
+      if (o) { fpSukces(o.kod_sprawy, o.zp); return; }
+      if (i + 1 < FP_STATUS.PO_MS.length) status(i + 1); else fpBlad(FP_KOM.blad, true);
+    });
+  }, FP_STATUS.PO_MS[i]);
   const koniec = o => {
-    if (po) return; po = true; if (zegar) clearTimeout(zegar);
-    if (o && o.ok === true) { fpWynik = { kod: FP.KOD.test(String(o.kod || '')) ? String(o.kod) : '', zp: FP.ZP.test(String(o.zp || '')) ? String(o.zp) : '' }; fpProba = { id: '', odcisk: '' }; render(); return; }
-    const k = o && typeof o.kod === 'string' ? o.kod : '';
+    if (po) { if (o && o.ok === true && naEkranie() && !fpWynik) fpSukces(o.kod, o.zp); return; }
+    po = true; if (zegar) clearTimeout(zegar);
+    if (o && o.ok === true) { fpSukces(o.kod, o.zp); return; }
+    if (!o || typeof o !== 'object') { if (wt) wt.textContent = FP_WYS.sprawdzamy; status(0); return; }
+    FP_W_TOKU = false;
+    const k = typeof o.kod === 'string' ? o.kod : '';
     if (k === 'walidacja') { fpBlad('Sprawdź pola formularza' + (FP_POLA[o.pole] ? ': ' + FP_POLA[o.pole] : '') + '.'); return; }
     fpBlad(FP_KOM[k] || FP_KOM.blad, k !== 'w_toku');
   };
@@ -2632,7 +2754,7 @@ function renderWidok() {
     const regBtn = k => `<button class="opt" type="button" data-region="${esc(k)}"><b>${esc(k)}</b></button>`;
     const alf = l => l.slice().sort((x, y) => x.localeCompare(y, 'pl'));
     v.innerHTML = `<h2>Gdzie jest Twój dom?</h2><p class="lead">Wybierz część Polski, a w niej krainę — w każdej budowano trochę inaczej.</p>
-      <div class="opts${makro ? ' pod-otw' : ''}" data-krainy>${KRAINY_MENU.map(x => x.r ? regBtn(x.r)
+      ${makro ? '' : kalkStartBox()}<div class="opts${makro ? ' pod-otw' : ''}" data-krainy>${KRAINY_MENU.map(x => x.r ? regBtn(x.r)
         : `<details class="pod" data-makro="${x.k}"${makro === x.k ? ' open' : ''}><summary data-makro="${x.k}"><b>${esc(x.name)}</b><span>${esc(alf(x.o).join(', '))}</span></summary><div class="opts">${alf(x.o).map(regBtn).join('')}</div></details>`).join('')}</div>
       ${makro ? '<div class="nav"><button class="btn" type="button" data-act="makroback">Wstecz</button></div>' : ''}`;
     return;
@@ -2670,7 +2792,7 @@ function renderWidok() {
     return;
   }
   if (st.step === qsOf(a).length + 1) {
-    v.innerHTML = `<h2>Co proponujemy</h2>${konfigBox()}<p class="lead">Na podstawie Twoich odpowiedzi.</p><div class="res">${bezpBox()}${regionBox()}${ocenaAudytu() || ''}${statusBox()}${wynik()}${wapnoBox()}${zanimBox()}${rozBox()}${pomBox()}${stareBox()}${pilnoscBox()}${brakiBox()}${faqWynikBox()}</div>${RAMKA_FACHOWCY}
+    v.innerHTML = `<h2>Co proponujemy</h2>${kalkWynikBox()}<p class="lead">Na podstawie Twoich odpowiedzi.</p><div class="res">${bezpBox()}${regionBox()}${ocenaAudytu() || ''}${statusBox()}${wynik()}${wapnoBox()}${zanimBox()}${rozBox()}${pomBox()}${stareBox()}${pilnoscBox()}${brakiBox()}${faqWynikBox()}</div>${RAMKA_FACHOWCY}
       <div class="nav"><button class="btn" type="button" data-act="back">Wstecz</button><button class="btn go" type="button" data-act="next">Zapytaj o wycenę lub audyt</button></div>`;
     faqQLinki();
     return;
@@ -2749,6 +2871,8 @@ document.addEventListener('click', e => {
       else if (det.classList.contains('faq-pg')) lejekFaq('podgrupa', faqSlug(det.dataset.faqPodgrupa));
       else { lejekFaq('karta', det.dataset.faqKarta); if (det.closest('#view .res') && opWidok() === 'wynik') { st.kartaWynik = det.dataset.faqKarta; faqQLinki(); } } }
     akordKlik(e, det); return; }
+  const kk = e.target.closest('a[data-kalk-start], a[data-kalk-naglowek], a[data-kalk-wynik]');
+  if (kk) lejek(kk.hasAttribute('data-kalk-start') ? 'kalk_start' : kk.hasAttribute('data-kalk-naglowek') ? 'kalk_naglowek' : 'kalk_wynik', '');
   const akk = e.target.closest('a[data-faq-kalk]');
   if (akk) { lejekFaq('przycisk', akk.dataset.faqKalk, 'kalk'); return; }
   const ak = e.target.closest('#view a[href]');
@@ -2800,6 +2924,8 @@ document.addEventListener('click', e => {
   if (act === 'temkopiuj') { mailKopiuj(); return; }
   if (act === 'back') { st.step--; if (st.step <= 0) st = { area: null, step: 0, ans: {}, sent: null }; render(); }
   if (act === 'fpkopiuj') { fpKopiuj(); return; }
+  if (act === 'fpkopadres') { fpKopiujAdres(); return; }
+  if (act === 'fpkoptresc') { fpKopiujTresc(); return; }
   if (act === 'reset') { fpWynik = null; faqK = null; pyt = null; st = { area: null, step: 0, ans: {}, sent: null }; grupa = null; pod = null; tem = null; domZapomnij(); kontaktZeruj(); render(); }
   if (act === 'locback') { loc.region = null; loc.spr = null; render(); }
   if (act === 'kodback') { loc.kodDone = false; render(); }
